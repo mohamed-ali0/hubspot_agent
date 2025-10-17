@@ -36,7 +36,7 @@ def setup_test_user():
             password_hash = SecurityService.hash_password('test')
             
             # Use a placeholder token - user needs to replace with real token
-            placeholder_token = "pat-eu1-placeholder-token-replace-with-real-token"
+            placeholder_token = "pat-placeholder-token-replace-with-real-token"
             
             user = User(
                 name='Test User',
