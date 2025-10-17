@@ -19,6 +19,12 @@ services:
       TWILIO_WHATSAPP_NUMBER: ${TWILIO_WHATSAPP_NUMBER}
       TWILIO_WEBHOOK_URL: ${TWILIO_WEBHOOK_URL}
       WHATSAPP_WEBHOOK_VERIFY_TOKEN: ${WHATSAPP_WEBHOOK_VERIFY_TOKEN}
+      # Docker-specific settings
+      DOCKER_ENV: "true"
+      IGNORE_DATABASE_PERSISTENCE: "true"
+      IGNORE_CACHE: "true"
+      USE_IN_MEMORY_DB: "true"
+      DISABLE_MIGRATIONS: "true"
     volumes:
       # Mount logs directory for persistence
       - ./logs:/app/logs
@@ -30,29 +36,5 @@ services:
       retries: 3
       start_period: 40s
 
-  # Optional: Add Redis for caching (if needed)
-  redis:
-    image: redis:7-alpine
-    ports:
-      - "6380:6379"
-    restart: unless-stopped
-    command: redis-server --appendonly yes
-    volumes:
-      - redis_data:/data
-
-  # Optional: Add PostgreSQL for production database
-  postgres:
-    image: postgres:15-alpine
-    environment:
-      - POSTGRES_DB=hubspot_agent
-      - POSTGRES_USER=hubspot_user
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-hubspot_password}
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    restart: unless-stopped
-
-volumes:
-  redis_data:
-  postgres_data:
+# Simplified setup - no Redis or PostgreSQL needed
+# Using in-memory SQLite database for Docker deployment

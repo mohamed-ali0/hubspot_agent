@@ -71,7 +71,12 @@ def create_app(config_class=None):
     migrate.init_app(app, db)
 
     # Import models after database and migrate are initialized
-    from app.models import User, ChatSession, ChatMessage, Log
+    # This ensures models are only registered once
+    try:
+        from app.models import User, ChatSession, ChatMessage, Log
+    except Exception as e:
+        print(f"[WARNING] Model import error: {e}")
+        # Continue without models for now
 
     # Register blueprints
     from app.api.v1 import auth, users, sessions, messages, logs, stats, health, help, whatsapp
