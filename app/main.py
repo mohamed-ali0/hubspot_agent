@@ -65,10 +65,10 @@ def create_app(config_class=None):
     # Initialize migrate before importing models
     migrate.init_app(app, db)
 
-    # Import models after database and migrate are initialized
+    # Import models first to ensure they're registered with SQLAlchemy
     from app.models import User, ChatSession, ChatMessage, Log
-
-    # Register blueprints
+    
+    # Register blueprints (models are already imported above)
     from app.api.v1 import auth, users, sessions, messages, logs, stats, health, help, whatsapp
     from app.api.v1.hubspot import contacts_bp, companies_bp, deals_bp, notes_bp, tasks_bp, activities_bp, associations_bp, leads_bp
     
@@ -118,10 +118,12 @@ app = create_app()
 if __name__ == '__main__':
     with app.app_context():
         try:
+            # Models are already imported in create_app()
             db.create_all()
             print("[OK] Database tables created successfully!")
         except Exception as e:
             print(f"[ERROR] Database initialization error: {e}")
+            print("[INFO] Continuing without database initialization...")
     
     print("[START] Starting Flask application...")
     print("[INFO] Server will be available at: http://127.0.0.1:5000")
