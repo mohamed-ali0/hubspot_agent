@@ -82,37 +82,61 @@ def create_app(config_class=None):
     try:
         from app.api.v1 import auth, users, sessions, messages, logs, stats, health, help, whatsapp
         from app.api.v1.hubspot import contacts_bp, companies_bp, deals_bp, notes_bp, tasks_bp, activities_bp, associations_bp, leads_bp
+        
+        # Core API blueprints
+        app.register_blueprint(auth.bp, url_prefix='/api/auth')
+        app.register_blueprint(users.bp, url_prefix='/api/users')
+        app.register_blueprint(sessions.bp, url_prefix='/api/sessions')
+        app.register_blueprint(messages.bp, url_prefix='/api/messages')
+        app.register_blueprint(logs.bp, url_prefix='/api/logs')
+        app.register_blueprint(stats.bp, url_prefix='/api/stats')
+        app.register_blueprint(health.bp, url_prefix='/api/health')
+        app.register_blueprint(help.bp, url_prefix='/api/help')
+        app.register_blueprint(whatsapp.bp, url_prefix='/api/whatsapp')
+        
+        print("[OK] Core blueprints registered successfully")
+        
     except Exception as e:
-        print(f"[WARNING] Blueprint import error: {e}")
-        # Continue without some blueprints if needed
+        print(f"[WARNING] Blueprint import/registration error: {e}")
+        print("[INFO] Attempting to register basic blueprints only...")
+        
+        # Try to register only the essential blueprints
+        try:
+            from app.api.v1 import health
+            app.register_blueprint(health.bp, url_prefix='/api/health')
+            print("[OK] Health blueprint registered")
+        except Exception as health_error:
+            print(f"[ERROR] Could not register health blueprint: {health_error}")
+        
+        try:
+            from app.api.v1 import help
+            app.register_blueprint(help.bp, url_prefix='/api/help')
+            print("[OK] Help blueprint registered")
+        except Exception as help_error:
+            print(f"[ERROR] Could not register help blueprint: {help_error}")
     
-    # Core API blueprints
-    app.register_blueprint(auth.bp, url_prefix='/api/auth')
-    app.register_blueprint(users.bp, url_prefix='/api/users')
-    app.register_blueprint(sessions.bp, url_prefix='/api/sessions')
-    app.register_blueprint(messages.bp, url_prefix='/api/messages')
-    app.register_blueprint(logs.bp, url_prefix='/api/logs')
-    app.register_blueprint(stats.bp, url_prefix='/api/stats')
-    app.register_blueprint(health.bp, url_prefix='/api/health')
-    app.register_blueprint(help.bp, url_prefix='/api/help')
-    app.register_blueprint(whatsapp.bp, url_prefix='/api/whatsapp')
-    
-    # Legacy HubSpot blueprint (for backward compatibility)
+    # HubSpot blueprints (conditional registration)
     try:
+        # Legacy HubSpot blueprint (for backward compatibility)
         from app.api.v1 import hubspot_legacy
         app.register_blueprint(hubspot_legacy.bp, url_prefix='/api/hubspot')
-    except ImportError:
-        pass  # Legacy hubspot module not available
-    
-    # New organized HubSpot blueprints
-    app.register_blueprint(contacts_bp, url_prefix='/api/hubspot/contacts')
-    app.register_blueprint(companies_bp, url_prefix='/api/hubspot/companies')
-    app.register_blueprint(deals_bp, url_prefix='/api/hubspot/deals')
-    app.register_blueprint(notes_bp, url_prefix='/api/hubspot/notes')
-    app.register_blueprint(tasks_bp, url_prefix='/api/hubspot/tasks')
-    app.register_blueprint(activities_bp, url_prefix='/api/hubspot/activities')
-    app.register_blueprint(associations_bp, url_prefix='/api/hubspot/associations')
-    app.register_blueprint(leads_bp, url_prefix='/api/hubspot/leads')
+        print("[OK] Legacy HubSpot blueprint registered")
+        
+        # New organized HubSpot blueprints
+        app.register_blueprint(contacts_bp, url_prefix='/api/hubspot/contacts')
+        app.register_blueprint(companies_bp, url_prefix='/api/hubspot/companies')
+        app.register_blueprint(deals_bp, url_prefix='/api/hubspot/deals')
+        app.register_blueprint(notes_bp, url_prefix='/api/hubspot/notes')
+        app.register_blueprint(tasks_bp, url_prefix='/api/hubspot/tasks')
+        app.register_blueprint(activities_bp, url_prefix='/api/hubspot/activities')
+        app.register_blueprint(associations_bp, url_prefix='/api/hubspot/associations')
+        app.register_blueprint(leads_bp, url_prefix='/api/hubspot/leads')
+        
+        print("[OK] HubSpot blueprints registered successfully")
+        
+    except Exception as hubspot_error:
+        print(f"[WARNING] HubSpot blueprint registration error: {hubspot_error}")
+        print("[INFO] HubSpot functionality may be limited")
 
     # Error handlers
     @app.errorhandler(404)
