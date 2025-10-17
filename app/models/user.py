@@ -10,7 +10,6 @@ from app.db.database import db
 class User(db.Model):
     """User model representing salesmen"""
     __tablename__ = 'users'
-    __table_args__ = {'extend_existing': True}
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(100), nullable=False)

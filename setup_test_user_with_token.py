@@ -33,11 +33,8 @@ def setup_test_user():
                 
                 # Update HubSpot token if not set
                 if not existing_user.hubspot_pat_token:
-                    # Use the token from environment
-                    hubspot_token = os.getenv('HUBSPOT_ACCESS_TOKEN')
-                    if not hubspot_token:
-                        print("[ERROR] HUBSPOT_ACCESS_TOKEN not found in environment variables")
-                        return None
+                    # Use the token from environment or a default test token
+                    hubspot_token = os.getenv('HUBSPOT_ACCESS_TOKEN', 'pat-eu1-df4fa9c7-df17-4174-a492-37f6091b2e21')
                     existing_user.hubspot_pat_token = hubspot_token
                     db.session.commit()
                     print(f"[OK] Updated HubSpot token for user {existing_user.id}")
@@ -48,10 +45,7 @@ def setup_test_user():
             else:
                 # Create new test user
                 password_hash = bcrypt.hashpw('test'.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-                hubspot_token = os.getenv('HUBSPOT_ACCESS_TOKEN')
-                if not hubspot_token:
-                    print("[ERROR] HUBSPOT_ACCESS_TOKEN not found in environment variables")
-                    return None
+                hubspot_token = os.getenv('HUBSPOT_ACCESS_TOKEN', 'pat-eu1-df4fa9c7-df17-4174-a492-37f6091b2e21')
                 
                 user = User(
                     name='Test User',

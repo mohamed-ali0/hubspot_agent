@@ -1,31 +1,10 @@
-# Flask and core dependencies
 Flask==2.3.3
 Flask-SQLAlchemy==3.0.5
-Flask-Migrate==4.0.5
 Flask-JWT-Extended==4.5.3
 Flask-CORS==4.0.0
-
-# Database
-SQLAlchemy==2.0.21
-
-# HTTP requests
-requests==2.31.0
-
-# Data validation
+Flask-Migrate==4.0.5
 marshmallow==3.20.1
-
-# Environment variables
-python-dotenv==1.0.0
-
-# Twilio integration
-twilio==8.5.0
-
-# Security
 bcrypt==4.0.1
-
-# Production server
-gunicorn==21.2.0
-
-# Development tools (optional)
-pytest==7.4.2
-pytest-flask==1.2.0
+python-dotenv==1.0.0
+requests==2.31.0
+twilio==8.10.0

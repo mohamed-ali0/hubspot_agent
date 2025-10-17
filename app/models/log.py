@@ -10,7 +10,6 @@ from app.db.database import db
 class Log(db.Model):
     """Log model for HubSpot activities"""
     __tablename__ = 'logs'
-    __table_args__ = {'extend_existing': True}
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)

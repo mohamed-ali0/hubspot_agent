@@ -1,7 +1,7 @@
 import json
 import requests
 
-BASE_URL = "http://89.117.63.196:5012"
+BASE_URL = "http://127.0.0.1:5000"
 
 def test_health_check():
     """Test health check endpoint"""

@@ -11,7 +11,7 @@ import json
 import requests
 from app.main import create_app
 
-BASE_URL = "http://89.117.63.196:5012"
+BASE_URL = "http://127.0.0.1:5000"
 
 @pytest.fixture
 def client():

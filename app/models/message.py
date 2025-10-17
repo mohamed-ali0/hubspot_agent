@@ -10,7 +10,6 @@ from app.db.database import db
 class ChatMessage(db.Model):
     """Chat message model"""
     __tablename__ = 'chat_messages'
-    __table_args__ = {'extend_existing': True}
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     session_id = Column(Integer, ForeignKey('chat_sessions.id'), nullable=False)

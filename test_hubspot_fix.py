@@ -9,14 +9,8 @@ import requests
 import json
 from datetime import datetime
 
-# Set environment variables (use actual token from environment)
-hubspot_token = os.getenv('HUBSPOT_ACCESS_TOKEN')
-if not hubspot_token:
-    print("ERROR: HUBSPOT_ACCESS_TOKEN not found in environment variables")
-    print("Please set HUBSPOT_ACCESS_TOKEN environment variable")
-    exit(1)
-
-os.environ['HUBSPOT_ACCESS_TOKEN'] = hubspot_token
+# Set environment variables
+os.environ['HUBSPOT_ACCESS_TOKEN'] = 'pat-eu1-df4fa9c7-df17-4174-a492-37f6091b2e21'
 os.environ['HUBSPOT_API_URL'] = 'https://api.hubapi.com'
 
 def test_hubspot_direct():
@@ -48,7 +42,7 @@ def test_flask_endpoints():
     """Test Flask endpoints"""
     print("\nTesting Flask endpoints...")
     
-    base_url = "http://89.117.63.196:5012"
+    base_url = "http://localhost:5000"
     
     try:
         # Test health
