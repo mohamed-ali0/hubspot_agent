@@ -65,8 +65,8 @@ def create_app(config_class=None):
     # Initialize migrate before importing models
     migrate.init_app(app, db)
 
-    # Models will be imported when needed by the blueprints
-    # This avoids SQLAlchemy registration conflicts
+    # Import models after database and migrate are initialized
+    from app.models import User, ChatSession, ChatMessage, Log
 
     # Register blueprints
     from app.api.v1 import auth, users, sessions, messages, logs, stats, health, help, whatsapp
@@ -118,15 +118,12 @@ app = create_app()
 if __name__ == '__main__':
     with app.app_context():
         try:
-            # Import models here to avoid conflicts
-            from app.models import User, ChatSession, ChatMessage, Log
             db.create_all()
             print("[OK] Database tables created successfully!")
         except Exception as e:
             print(f"[ERROR] Database initialization error: {e}")
-            print("[INFO] Continuing without database initialization...")
     
     print("[START] Starting Flask application...")
-    print("[INFO] Server will be available at: http://0.0.0.0:5012")
-    print("[INFO] Health check: http://0.0.0.0:5012/api/health")
-    app.run(debug=False, host='0.0.0.0', port=5012)
+    print("[INFO] Server will be available at: http://127.0.0.1:5000")
+    print("[INFO] Health check: http://127.0.0.1:5000/api/health")
+    app.run(debug=True, host='0.0.0.0', port=5000)
