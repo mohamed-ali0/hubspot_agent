@@ -3,10 +3,11 @@ version: '3.8'
 services:
   hubspot-agent:
     build: .
+    command: python app/main.py
     ports:
       - "5012:5012"
     environment:
-      - FLASK_APP=main.py
+      - FLASK_APP=app.main:app
       - FLASK_ENV=production
       - SECRET_KEY=your-secret-key-change-in-production
       - DATABASE_URL=sqlite:///data/database.db
