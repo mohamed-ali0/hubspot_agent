@@ -76,16 +76,16 @@ sleep 10
 
 # Test the application
 echo "🔍 Testing application..."
-curl -f http://localhost:5000/api/health > /dev/null 2>&1
+curl -f http://localhost:5012/api/health > /dev/null 2>&1
 if [ $? -eq 0 ]; then
     echo "✅ Application is running successfully!"
     echo ""
     echo "🎉 HubSpot AI Agent is now running!"
     echo ""
     echo "📊 Application URLs:"
-    echo "   - API: http://localhost:5000"
-    echo "   - Health: http://localhost:5000/api/health"
-    echo "   - Help: http://localhost:5000/api/help"
+    echo "   - API: http://localhost:5012"
+    echo "   - Health: http://localhost:5012/api/health"
+    echo "   - Help: http://localhost:5012/api/help"
     echo ""
     echo "📋 Useful commands:"
     echo "   - View logs: docker-compose logs -f"

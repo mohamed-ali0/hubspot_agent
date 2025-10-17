@@ -4,7 +4,7 @@ services:
   hubspot-agent:
     build: .
     ports:
-      - "5000:5000"
+      - "5012:5000"
     environment:
       FLASK_APP: "main.py"
       FLASK_ENV: "production"
@@ -32,7 +32,7 @@ services:
   redis:
     image: "redis:7-alpine"
     ports:
-      - "6379:6379"
+      - "6380:6379"
     restart: "unless-stopped"
     command: "redis-server --appendonly yes"
     volumes:
