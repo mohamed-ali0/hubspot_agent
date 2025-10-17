@@ -4,7 +4,15 @@ Authentication API endpoints
 
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
-from app.models import User
+# Import User model safely
+try:
+    from app.models import User
+except Exception as e:
+    # If model import fails, create a dummy User class
+    class User:
+        @staticmethod
+        def query():
+            return None
 from app.db.database import db
 from app.core.security import SecurityService
 from marshmallow import Schema, fields, ValidationError

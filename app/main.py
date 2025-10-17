@@ -73,7 +73,9 @@ def create_app(config_class=None):
     # Import models after database and migrate are initialized
     # This ensures models are only registered once
     try:
-        from app.models import User, ChatSession, ChatMessage, Log
+        from app.models import import_models
+        User, ChatSession, ChatMessage, Log = import_models()
+        print("[OK] Models imported successfully")
     except Exception as e:
         print(f"[WARNING] Model import error: {e}")
         # Continue without models for now
