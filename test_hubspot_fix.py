@@ -48,7 +48,7 @@ def test_flask_endpoints():
     """Test Flask endpoints"""
     print("\nTesting Flask endpoints...")
     
-    base_url = "http://localhost:5000"
+    base_url = "http://89.117.63.196:5012"
     
     try:
         # Test health

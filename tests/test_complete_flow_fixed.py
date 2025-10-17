@@ -17,7 +17,7 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
-BASE_URL = "http://127.0.0.1:5000"
+BASE_URL = "http://89.117.63.196:5012"
 
 def get_auth_token():
     """Get authentication token"""

@@ -9,7 +9,7 @@ import time
 
 class NewHubSpotAPITester:
     def __init__(self):
-        self.base_url = "http://127.0.0.1:5000"
+        self.base_url = "http://89.117.63.196:5012"
         self.token = None
         self.headers = {}
         self.test_results = []
@@ -320,7 +320,7 @@ def main():
     
     # Check if Flask app is running
     try:
-        response = requests.get("http://127.0.0.1:5000/api/health", timeout=2)
+        response = requests.get("http://89.117.63.196:5012/api/health", timeout=2)
         if response.status_code != 200:
             print("[ERROR] Flask app is not running or not accessible")
             print("Please start the Flask app with: python app/main.py")

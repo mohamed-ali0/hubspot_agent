@@ -35,7 +35,7 @@ from app.db.database import db
 from app.models import User, ChatSession, ChatMessage, Log
 
 # Configuration
-BASE_URL = "http://localhost:5000"
+BASE_URL = "http://89.117.63.196:5012"
 HUBSPOT_BASE_URL = "https://api.hubapi.com"
 HUBSPOT_TOKEN = os.getenv('HUBSPOT_ACCESS_TOKEN')
 

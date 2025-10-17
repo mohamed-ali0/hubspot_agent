@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 
 class WorkingCompleteSalesFlowTester:
     def __init__(self):
-        self.base_url = "http://127.0.0.1:5000"
+        self.base_url = "http://89.117.63.196:5012"
         self.token = None
         self.headers = {}
         self.test_data = {}
