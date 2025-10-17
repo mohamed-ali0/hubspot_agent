@@ -23,9 +23,9 @@ with app.app_context():
 
 # Start the application
 echo "[START] Starting HubSpot AI Agent..."
-echo "[INFO] Server will be available at: http://0.0.0.0:5000"
-echo "[INFO] Health check: http://0.0.0.0:5000/api/health"
+echo "[INFO] Server will be available at: http://0.0.0.0:5012"
+echo "[INFO] Health check: http://0.0.0.0:5012/api/health"
 echo "[INFO] Docker mode: Database and cache ignored (in-memory only)"
 
 # Use Gunicorn for production
-exec gunicorn --bind 0.0.0.0:5000 --workers 4 --timeout 120 --keep-alive 2 --max-requests 1000 --max-requests-jitter 100 app.main:app
+exec gunicorn --bind 0.0.0.0:5012 --workers 4 --timeout 120 --keep-alive 2 --max-requests 1000 --max-requests-jitter 100 app.main:app

@@ -168,9 +168,9 @@ if __name__ == '__main__':
         except Exception as e:
             print(f"[ERROR] Database initialization error: {e}")
     
-    print("[START] Starting Flask application...")
-    print("[INFO] Server will be available at: http://127.0.0.1:5000")
-    print("[INFO] Health check: http://127.0.0.1:5000/api/health")
+           print("[START] Starting Flask application...")
+           print("[INFO] Server will be available at: http://127.0.0.1:5012")
+           print("[INFO] Health check: http://127.0.0.1:5012/api/health")
     
     # Use Gunicorn in production/Docker, Flask dev server otherwise
     if app.config.get('FLASK_ENV') == 'production' or app.config.get('IGNORE_DATABASE_PERSISTENCE', False):
