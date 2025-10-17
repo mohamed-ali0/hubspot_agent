@@ -1,0 +1,124 @@
+{
+  "title": "POST Create Deal",
+  "description": "Create a new deal in HubSpot and log the operation to the database",
+  "method": "POST",
+  "endpoint": "/api/hubspot/deals/deals",
+  "authentication": "Bearer token required",
+  "request": {
+    "url": "/api/hubspot/deals/deals",
+    "method": "POST",
+    "headers": {
+      "Authorization": "Bearer {jwt_token}",
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "session_id": {
+        "type": "integer",
+        "required": true,
+        "description": "Chat session ID for logging purposes"
+      },
+      "chat_message_id": {
+        "type": "integer",
+        "required": true,
+        "description": "Chat message ID that triggered this action"
+      },
+      "properties": {
+        "type": "object",
+        "required": true,
+        "description": "Deal properties to create",
+        "properties": {
+          "dealname": {
+            "type": "string",
+            "required": true,
+            "description": "Name of the deal"
+          },
+          "amount": {
+            "type": "string",
+            "description": "Deal amount"
+          },
+          "dealstage": {
+            "type": "string",
+            "description": "Current stage of the deal"
+          },
+          "closedate": {
+            "type": "string",
+            "description": "Expected close date (ISO format)"
+          },
+          "pipeline": {
+            "type": "string",
+            "description": "Deal pipeline"
+          }
+        }
+      },
+      "associations": {
+        "type": "object",
+        "description": "Associations to create with the deal",
+        "properties": {
+          "contacts": {
+            "type": "array",
+            "description": "Contact IDs to associate with the deal"
+          },
+          "companies": {
+            "type": "array",
+            "description": "Company IDs to associate with the deal"
+          }
+        }
+      }
+    }
+  },
+  "response": {
+    "success": {
+      "status_code": 201,
+      "body": {
+        "success": true,
+        "hubspot_id": "67890",
+        "data": {
+          "id": "67890",
+          "properties": {
+            "dealname": "Acme Corp - 100 units",
+            "amount": "50000",
+            "dealstage": "qualifiedtobuy",
+            "closedate": "2025-02-15T00:00:00Z",
+            "pipeline": "default"
+          },
+          "createdAt": "2025-01-15T10:00:00Z",
+          "updatedAt": "2025-01-15T10:00:00Z"
+        },
+        "log_id": 125,
+        "message": "Deal created successfully"
+      }
+    },
+    "error": {
+      "status_code": 400,
+      "body": {
+        "error": "Validation error",
+        "details": {
+          "properties": ["dealname is required"]
+        }
+      }
+    }
+  },
+  "tips": [
+    "Always include session_id and chat_message_id for proper logging",
+    "dealname is typically required for HubSpot deals",
+    "Use standard deal stages like 'qualifiedtobuy', 'appointmentscheduled', etc.",
+    "Set a realistic close date for better pipeline management",
+    "Associate deals with contacts and companies for better tracking",
+    "The operation is automatically logged to the database with sync status"
+  ],
+  "examples": {
+    "basic_deal": {
+      "description": "Create a basic deal",
+      "curl": "curl -X POST 'http://127.0.0.1:5000/api/hubspot/deals/deals' -H 'Authorization: Bearer {token}' -H 'Content-Type: application/json' -d '{\"session_id\": 1, \"chat_message_id\": 5, \"properties\": {\"dealname\": \"Acme Corp Deal\", \"amount\": \"25000\", \"dealstage\": \"qualifiedtobuy\"}}'"
+    },
+    "complete_deal": {
+      "description": "Create a deal with associations",
+      "curl": "curl -X POST 'http://127.0.0.1:5000/api/hubspot/deals/deals' -H 'Authorization: Bearer {token}' -H 'Content-Type: application/json' -d '{\"session_id\": 1, \"chat_message_id\": 5, \"properties\": {\"dealname\": \"Acme Corp - 100 units\", \"amount\": \"50000\", \"dealstage\": \"qualifiedtobuy\", \"closedate\": \"2025-02-15T00:00:00Z\"}, \"associations\": {\"contacts\": [\"12345\"], \"companies\": [\"67890\"]}}'"
+    }
+  },
+  "related_endpoints": [
+    "/api/hubspot/deals/deals/{id}",
+    "/api/hubspot/deals/pipelines",
+    "/api/hubspot/deals/deals/{id} (PATCH)"
+  ]
+}

@@ -1,0 +1,86 @@
+{
+  "title": "GET Contacts",
+  "description": "Retrieve all contacts from HubSpot with optional filtering and pagination",
+  "method": "GET",
+  "endpoint": "/api/hubspot/contacts/contacts",
+  "authentication": "Bearer token required",
+  "request": {
+    "url": "/api/hubspot/contacts/contacts",
+    "method": "GET",
+    "headers": {
+      "Authorization": "Bearer {jwt_token}",
+      "Content-Type": "application/json"
+    },
+    "query_parameters": {
+      "limit": {
+        "type": "integer",
+        "default": 10,
+        "description": "Maximum number of contacts to return",
+        "example": "?limit=20"
+      },
+      "properties": {
+        "type": "array",
+        "description": "Specific contact properties to retrieve",
+        "example": "?properties=firstname&properties=lastname&properties=email"
+      }
+    }
+  },
+  "response": {
+    "success": {
+      "status_code": 200,
+      "body": {
+        "results": [
+          {
+            "id": "12345",
+            "properties": {
+              "firstname": "John",
+              "lastname": "Doe",
+              "email": "john.doe@example.com",
+              "phone": "+1234567890",
+              "company": "Acme Corp"
+            },
+            "createdAt": "2025-01-15T10:00:00Z",
+            "updatedAt": "2025-01-15T10:00:00Z"
+          }
+        ],
+        "paging": {
+          "next": {
+            "after": "next_page_token"
+          }
+        }
+      }
+    },
+    "error": {
+      "status_code": 500,
+      "body": {
+        "error": "HubSpot API error: 401 - Unauthorized"
+      }
+    }
+  },
+  "tips": [
+    "Use the 'limit' parameter to control the number of results returned",
+    "Specify 'properties' to only retrieve specific contact fields and improve performance",
+    "The response includes pagination information for large result sets",
+    "All requests are automatically logged to the database for audit purposes",
+    "Use the 'properties' parameter to reduce response size and improve performance"
+  ],
+  "examples": {
+    "basic_request": {
+      "description": "Get first 10 contacts",
+      "curl": "curl -X GET 'http://127.0.0.1:5000/api/hubspot/contacts/contacts' -H 'Authorization: Bearer {token}'"
+    },
+    "with_limit": {
+      "description": "Get 50 contacts",
+      "curl": "curl -X GET 'http://127.0.0.1:5000/api/hubspot/contacts/contacts?limit=50' -H 'Authorization: Bearer {token}'"
+    },
+    "specific_properties": {
+      "description": "Get contacts with only name and email",
+      "curl": "curl -X GET 'http://127.0.0.1:5000/api/hubspot/contacts/contacts?properties=firstname&properties=lastname&properties=email' -H 'Authorization: Bearer {token}'"
+    }
+  },
+  "related_endpoints": [
+    "/api/hubspot/contacts/contacts/{id}",
+    "/api/hubspot/contacts/properties",
+    "/api/hubspot/contacts/contacts/search"
+  ]
+}

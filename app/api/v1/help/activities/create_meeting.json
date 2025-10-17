@@ -1,0 +1,134 @@
+{
+  "title": "POST Create Meeting",
+  "description": "Create a new meeting in HubSpot and log the operation to the database",
+  "method": "POST",
+  "endpoint": "/api/hubspot/activities/meetings",
+  "authentication": "Bearer token required",
+  "request": {
+    "url": "/api/hubspot/activities/meetings",
+    "method": "POST",
+    "headers": {
+      "Authorization": "Bearer {jwt_token}",
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "session_id": {
+        "type": "integer",
+        "required": true,
+        "description": "Chat session ID for logging purposes"
+      },
+      "chat_message_id": {
+        "type": "integer",
+        "required": true,
+        "description": "Chat message ID that triggered this action"
+      },
+      "properties": {
+        "type": "object",
+        "required": true,
+        "description": "Meeting properties to create",
+        "properties": {
+          "hs_meeting_title": {
+            "type": "string",
+            "required": true,
+            "description": "Title of the meeting"
+          },
+          "hs_meeting_body": {
+            "type": "string",
+            "description": "Meeting description or agenda"
+          },
+          "hs_meeting_start_time": {
+            "type": "integer",
+            "description": "Meeting start time (Unix timestamp)"
+          },
+          "hs_meeting_end_time": {
+            "type": "integer",
+            "description": "Meeting end time (Unix timestamp)"
+          },
+          "hs_meeting_outcome": {
+            "type": "string",
+            "description": "Meeting outcome (SCHEDULED, COMPLETED, etc.)"
+          },
+          "hs_timestamp": {
+            "type": "integer",
+            "description": "Meeting timestamp"
+          }
+        }
+      },
+      "associations": {
+        "type": "object",
+        "description": "Associations to create with the meeting",
+        "properties": {
+          "contacts": {
+            "type": "array",
+            "description": "Contact IDs to associate with the meeting"
+          },
+          "companies": {
+            "type": "array",
+            "description": "Company IDs to associate with the meeting"
+          },
+          "deals": {
+            "type": "array",
+            "description": "Deal IDs to associate with the meeting"
+          }
+        }
+      }
+    }
+  },
+  "response": {
+    "success": {
+      "status_code": 201,
+      "body": {
+        "success": true,
+        "hubspot_id": "meeting_123",
+        "data": {
+          "id": "meeting_123",
+          "properties": {
+            "hs_meeting_title": "Client Meeting - Q1 Planning",
+            "hs_meeting_body": "Discussion about Q1 goals and objectives",
+            "hs_meeting_start_time": 1705312800000,
+            "hs_meeting_end_time": 1705316400000,
+            "hs_meeting_outcome": "SCHEDULED",
+            "hs_timestamp": 1705312800000
+          },
+          "createdAt": "2025-01-15T10:00:00Z",
+          "updatedAt": "2025-01-15T10:00:00Z"
+        },
+        "log_id": 126,
+        "message": "Meeting created successfully"
+      }
+    },
+    "error": {
+      "status_code": 400,
+      "body": {
+        "error": "Validation error",
+        "details": {
+          "properties": ["hs_meeting_title is required"]
+        }
+      }
+    }
+  },
+  "tips": [
+    "Always include session_id and chat_message_id for proper logging",
+    "hs_meeting_title is typically required for HubSpot meetings",
+    "Use Unix timestamps for start_time and end_time (milliseconds since epoch)",
+    "Set appropriate meeting outcomes: SCHEDULED, COMPLETED, CANCELLED, etc.",
+    "Associate meetings with contacts, companies, or deals for better tracking",
+    "Include meeting body/agenda for context and follow-up",
+    "The operation is automatically logged to the database with sync status"
+  ],
+  "examples": {
+    "basic_meeting": {
+      "description": "Create a basic meeting",
+      "curl": "curl -X POST 'http://127.0.0.1:5000/api/hubspot/activities/meetings' -H 'Authorization: Bearer {token}' -H 'Content-Type: application/json' -d '{\"session_id\": 1, \"chat_message_id\": 5, \"properties\": {\"hs_meeting_title\": \"Client Meeting\", \"hs_meeting_body\": \"Discussion about project requirements\"}}'"
+    },
+    "scheduled_meeting": {
+      "description": "Create a scheduled meeting with associations",
+      "curl": "curl -X POST 'http://127.0.0.1:5000/api/hubspot/activities/meetings' -H 'Authorization: Bearer {token}' -H 'Content-Type: application/json' -d '{\"session_id\": 1, \"chat_message_id\": 5, \"properties\": {\"hs_meeting_title\": \"Q1 Planning Meeting\", \"hs_meeting_start_time\": 1705312800000, \"hs_meeting_end_time\": 1705316400000, \"hs_meeting_outcome\": \"SCHEDULED\"}, \"associations\": {\"contacts\": [\"12345\"], \"companies\": [\"67890\"]}}'"
+    }
+  },
+  "related_endpoints": [
+    "/api/hubspot/activities/meetings/{id}",
+    "/api/hubspot/activities/meetings (GET)",
+    "/api/hubspot/activities/calls"
+  ]
+}

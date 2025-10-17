@@ -1,0 +1,91 @@
+{
+  "title": "PATCH Update Contact",
+  "description": "Update an existing contact in HubSpot and log the operation to the database",
+  "method": "PATCH",
+  "endpoint": "/api/hubspot/contacts/contacts/{contact_id}",
+  "authentication": "Bearer token required",
+  "request": {
+    "url": "/api/hubspot/contacts/contacts/{contact_id}",
+    "method": "PATCH",
+    "headers": {
+      "Authorization": "Bearer {jwt_token}",
+      "Content-Type": "application/json"
+    },
+    "path_parameters": {
+      "contact_id": {
+        "type": "string",
+        "required": true,
+        "description": "HubSpot contact ID to update"
+      }
+    },
+    "body": {
+      "session_id": {
+        "type": "integer",
+        "required": true,
+        "description": "Chat session ID for logging purposes"
+      },
+      "chat_message_id": {
+        "type": "integer",
+        "required": true,
+        "description": "Chat message ID that triggered this action"
+      },
+      "properties": {
+        "type": "object",
+        "required": true,
+        "description": "Contact properties to update (only changed properties needed)"
+      }
+    }
+  },
+  "response": {
+    "success": {
+      "status_code": 200,
+      "body": {
+        "success": true,
+        "hubspot_id": "12345",
+        "data": {
+          "id": "12345",
+          "properties": {
+            "firstname": "John",
+            "lastname": "Doe",
+            "email": "john.doe@example.com",
+            "phone": "+1234567890",
+            "company": "Acme Corp"
+          },
+          "createdAt": "2025-01-15T10:00:00Z",
+          "updatedAt": "2025-01-15T11:00:00Z"
+        },
+        "log_id": 124,
+        "message": "Contact updated successfully"
+      }
+    },
+    "error": {
+      "status_code": 404,
+      "body": {
+        "error": "Contact not found"
+      }
+    }
+  },
+  "tips": [
+    "Only include properties that need to be updated",
+    "The contact_id must be a valid HubSpot contact ID",
+    "All updates are logged to the database for audit purposes",
+    "Use PATCH for partial updates, PUT for complete replacement",
+    "Check the response for confirmation of successful update",
+    "Failed updates are logged with error details"
+  ],
+  "examples": {
+    "update_email": {
+      "description": "Update contact email",
+      "curl": "curl -X PATCH 'http://127.0.0.1:5000/api/hubspot/contacts/contacts/12345' -H 'Authorization: Bearer {token}' -H 'Content-Type: application/json' -d '{\"session_id\": 1, \"chat_message_id\": 6, \"properties\": {\"email\": \"newemail@example.com\"}}'"
+    },
+    "update_multiple_fields": {
+      "description": "Update multiple contact fields",
+      "curl": "curl -X PATCH 'http://127.0.0.1:5000/api/hubspot/contacts/contacts/12345' -H 'Authorization: Bearer {token}' -H 'Content-Type: application/json' -d '{\"session_id\": 1, \"chat_message_id\": 6, \"properties\": {\"phone\": \"+1987654321\", \"company\": \"New Company Inc\"}}'"
+    }
+  },
+  "related_endpoints": [
+    "/api/hubspot/contacts/contacts/{id} (GET)",
+    "/api/hubspot/contacts/contacts/{id} (PUT)",
+    "/api/hubspot/contacts/contacts/{id} (DELETE)"
+  ]
+}

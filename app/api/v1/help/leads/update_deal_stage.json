@@ -1,0 +1,106 @@
+{
+  "title": "PATCH Update Deal Stage",
+  "description": "Update the stage of an existing deal in HubSpot",
+  "method": "PATCH",
+  "endpoint": "/api/hubspot/leads/deals/{deal_id}/stages",
+  "authentication": "Bearer token required",
+  "request": {
+    "url": "/api/hubspot/leads/deals/{deal_id}/stages",
+    "method": "PATCH",
+    "headers": {
+      "Authorization": "Bearer {jwt_token}",
+      "Content-Type": "application/json"
+    },
+    "path_parameters": {
+      "deal_id": {
+        "type": "string",
+        "required": true,
+        "description": "HubSpot deal ID to update"
+      }
+    },
+    "body": {
+      "session_id": {
+        "type": "integer",
+        "required": true,
+        "description": "Chat session ID for logging purposes"
+      },
+      "chat_message_id": {
+        "type": "integer",
+        "required": true,
+        "description": "Chat message ID that triggered this action"
+      },
+      "new_stage": {
+        "type": "string",
+        "required": true,
+        "description": "New deal stage to set",
+        "enum": [
+          "appointmentscheduled",
+          "qualifiedtobuy",
+          "presentationscheduled",
+          "decisionmakerboughtin",
+          "contractsent",
+          "closedwon",
+          "closedlost"
+        ]
+      },
+      "reason": {
+        "type": "string",
+        "required": false,
+        "description": "Reason for stage change"
+      }
+    }
+  },
+  "response": {
+    "success": {
+      "status_code": 200,
+      "body": {
+        "success": true,
+        "deal_id": "67890",
+        "new_stage": "qualifiedtobuy",
+        "data": {
+          "id": "67890",
+          "properties": {
+            "dealname": "Acme Corp - Premium Package",
+            "dealstage": "qualifiedtobuy",
+            "amount": "50000"
+          },
+          "updatedAt": "2025-01-15T11:00:00Z"
+        },
+        "message": "Deal stage updated successfully"
+      }
+    },
+    "error": {
+      "status_code": 400,
+      "body": {
+        "error": "Validation error",
+        "details": {
+          "new_stage": ["Invalid deal stage"]
+        }
+      }
+    }
+  },
+  "tips": [
+    "Use standard HubSpot deal stages for consistency",
+    "Common stages: appointmentscheduled, qualifiedtobuy, presentationscheduled, decisionmakerboughtin, closedwon, closedlost",
+    "Stage changes are automatically logged to the database",
+    "Use the reason field to document why the stage changed",
+    "Monitor deal progression through the sales pipeline",
+    "Closed deals (won/lost) should have close dates set",
+    "Regular stage updates help track sales performance"
+  ],
+  "examples": {
+    "basic_stage_update": {
+      "description": "Update deal to qualified stage",
+      "curl": "curl -X PATCH 'http://127.0.0.1:5000/api/hubspot/leads/deals/67890/stages' -H 'Authorization: Bearer {token}' -H 'Content-Type: application/json' -d '{\"session_id\": 1, \"chat_message_id\": 7, \"new_stage\": \"qualifiedtobuy\"}'"
+    },
+    "stage_update_with_reason": {
+      "description": "Update deal stage with reason",
+      "curl": "curl -X PATCH 'http://127.0.0.1:5000/api/hubspot/leads/deals/67890/stages' -H 'Authorization: Bearer {token}' -H 'Content-Type: application/json' -d '{\"session_id\": 1, \"chat_message_id\": 7, \"new_stage\": \"presentationscheduled\", \"reason\": \"Client requested product demonstration\"}'"
+    }
+  },
+  "related_endpoints": [
+    "/api/hubspot/leads/leads/{id}/qualify",
+    "/api/hubspot/leads/pipelines",
+    "/api/hubspot/leads/pipelines/{id}/stages"
+  ]
+}

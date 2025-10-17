@@ -1,0 +1,109 @@
+{
+  "title": "POST Create Contact",
+  "description": "Create a new contact in HubSpot and log the operation to the database",
+  "method": "POST",
+  "endpoint": "/api/hubspot/contacts/contacts",
+  "authentication": "Bearer token required",
+  "request": {
+    "url": "/api/hubspot/contacts/contacts",
+    "method": "POST",
+    "headers": {
+      "Authorization": "Bearer {jwt_token}",
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "session_id": {
+        "type": "integer",
+        "required": true,
+        "description": "Chat session ID for logging purposes"
+      },
+      "chat_message_id": {
+        "type": "integer",
+        "required": true,
+        "description": "Chat message ID that triggered this action"
+      },
+      "properties": {
+        "type": "object",
+        "required": true,
+        "description": "Contact properties to create",
+        "properties": {
+          "firstname": {
+            "type": "string",
+            "description": "Contact's first name"
+          },
+          "lastname": {
+            "type": "string",
+            "description": "Contact's last name"
+          },
+          "email": {
+            "type": "string",
+            "description": "Contact's email address"
+          },
+          "phone": {
+            "type": "string",
+            "description": "Contact's phone number"
+          },
+          "company": {
+            "type": "string",
+            "description": "Contact's company name"
+          }
+        }
+      }
+    }
+  },
+  "response": {
+    "success": {
+      "status_code": 201,
+      "body": {
+        "success": true,
+        "hubspot_id": "12345",
+        "data": {
+          "id": "12345",
+          "properties": {
+            "firstname": "John",
+            "lastname": "Doe",
+            "email": "john.doe@example.com",
+            "phone": "+1234567890",
+            "company": "Acme Corp"
+          },
+          "createdAt": "2025-01-15T10:00:00Z",
+          "updatedAt": "2025-01-15T10:00:00Z"
+        },
+        "log_id": 123,
+        "message": "Contact created successfully"
+      }
+    },
+    "error": {
+      "status_code": 400,
+      "body": {
+        "error": "Validation error",
+        "details": {
+          "properties": ["This field is required"]
+        }
+      }
+    }
+  },
+  "tips": [
+    "Always include session_id and chat_message_id for proper logging",
+    "Email is typically required for HubSpot contacts",
+    "Use meaningful property names that match HubSpot's standard properties",
+    "The operation is automatically logged to the database with sync status",
+    "Check the response for the generated HubSpot ID for future operations",
+    "Failed operations are logged with error details for debugging"
+  ],
+  "examples": {
+    "basic_contact": {
+      "description": "Create a basic contact",
+      "curl": "curl -X POST 'http://127.0.0.1:5000/api/hubspot/contacts/contacts' -H 'Authorization: Bearer {token}' -H 'Content-Type: application/json' -d '{\"session_id\": 1, \"chat_message_id\": 5, \"properties\": {\"firstname\": \"John\", \"lastname\": \"Doe\", \"email\": \"john@example.com\"}}'"
+    },
+    "complete_contact": {
+      "description": "Create a contact with all properties",
+      "curl": "curl -X POST 'http://127.0.0.1:5000/api/hubspot/contacts/contacts' -H 'Authorization: Bearer {token}' -H 'Content-Type: application/json' -d '{\"session_id\": 1, \"chat_message_id\": 5, \"properties\": {\"firstname\": \"John\", \"lastname\": \"Doe\", \"email\": \"john@example.com\", \"phone\": \"+1234567890\", \"company\": \"Acme Corp\"}}'"
+    }
+  },
+  "related_endpoints": [
+    "/api/hubspot/contacts/contacts/{id}",
+    "/api/hubspot/contacts/contacts/{id} (PATCH)",
+    "/api/hubspot/contacts/contacts/{id} (DELETE)"
+  ]
+}

@@ -2,9 +2,11 @@
 Health check and system status API endpoints
 """
 
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, current_app
 from datetime import datetime
-import os
+from app.models import User
+from app.db.database import db
+from sqlalchemy import text
 
 bp = Blueprint('health', __name__)
 
@@ -12,14 +14,24 @@ bp = Blueprint('health', __name__)
 def health_check():
     """Health check endpoint"""
     try:
-        # Check HubSpot API configuration
-        hubspot_status = 'configured' if os.getenv('HUBSPOT_ACCESS_TOKEN') else 'not_configured'
-        
-        # Simple database check - just return healthy for now
+        # Check database connection
         db_status = 'connected'
+        try:
+            db.session.execute(text('SELECT 1'))
+        except Exception:
+            db_status = 'error'
+
+        # Check if any users have HubSpot tokens configured
+        hubspot_status = 'not_configured'
+        try:
+            users_with_tokens = User.query.filter(User.hubspot_pat_token.isnot(None)).count()
+            if users_with_tokens > 0:
+                hubspot_status = 'configured'
+        except Exception:
+            hubspot_status = 'error'
         
         return jsonify({
-            'status': 'healthy',
+            'status': 'healthy' if db_status == 'connected' else 'unhealthy',
             'database': db_status,
             'hubspot_api': hubspot_status,
             'timestamp': datetime.utcnow().isoformat(),

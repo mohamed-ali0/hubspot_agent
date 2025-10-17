@@ -1,0 +1,446 @@
+{
+  "name": "WhatsApp AI Agent with HubSpot Integration",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "whatsapp-webhook",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-start",
+      "name": "WhatsApp Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "webhookId": "whatsapp-webhook"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"status\": \"received\", \"message_id\": $json.message_id } }}"
+      },
+      "id": "webhook-response",
+      "name": "Webhook Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract WhatsApp message data\nconst message = $input.first().json.entry[0].changes[0].value.messages[0];\nconst contact = $input.first().json.entry[0].changes[0].value.contacts[0];\n\nreturn {\n  message_id: message.id,\n  from_number: message.from,\n  message_text: message.text.body,\n  timestamp: message.timestamp,\n  contact_name: contact.profile.name,\n  session_id: 1, // Mock session ID\n  chat_message_id: 1 // Mock message ID\n};"
+      },
+      "id": "extract-data",
+      "name": "Extract Message Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [240, 480]
+    },
+    {
+      "parameters": {
+        "model": "gpt-3.5-turbo",
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "You are a sales AI assistant. Analyze WhatsApp messages and determine what HubSpot actions to take. Respond with JSON containing:\n- action: 'create_contact', 'create_company', 'create_deal', 'create_note', 'create_task', 'create_meeting', 'create_call', 'update_contact', 'qualify_lead', 'update_deal_stage'\n- properties: object with relevant data\n- response_message: text to send back to user\n\nExample:\n{\n  \"action\": \"create_contact\",\n  \"properties\": {\n    \"firstname\": \"John\",\n    \"lastname\": \"Doe\",\n    \"email\": \"john@example.com\",\n    \"phone\": \"+1234567890\"\n  },\n  \"response_message\": \"I've created a contact for John Doe in HubSpot!\"\n}"
+            },
+            {
+              "role": "user",
+              "content": "{{ $json.message_text }}"
+            }
+          ]
+        },
+        "options": {
+          "temperature": 0.7
+        }
+      },
+      "id": "ai-analysis",
+      "name": "AI Analysis",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [460, 480]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "create-contact",
+              "leftValue": "={{ $json.action }}",
+              "rightValue": "create_contact",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "action-router",
+      "name": "Route by Action",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [680, 480]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:5000/api/hubspot/contacts/contacts",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_JWT_TOKEN_HERE"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "session_id",
+              "value": "={{ $('Extract Message Data').item.json.session_id }}"
+            },
+            {
+              "name": "chat_message_id",
+              "value": "={{ $('Extract Message Data').item.json.chat_message_id }}"
+            },
+            {
+              "name": "properties",
+              "value": "={{ $json.properties }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "create-contact",
+      "name": "Create Contact",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:5000/api/hubspot/companies/companies",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_JWT_TOKEN_HERE"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "session_id",
+              "value": "={{ $('Extract Message Data').item.json.session_id }}"
+            },
+            {
+              "name": "chat_message_id",
+              "value": "={{ $('Extract Message Data').item.json.chat_message_id }}"
+            },
+            {
+              "name": "properties",
+              "value": "={{ $json.properties }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "create-company",
+      "name": "Create Company",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [900, 400]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:5000/api/hubspot/deals/deals",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_JWT_TOKEN_HERE"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "session_id",
+              "value": "={{ $('Extract Message Data').item.json.session_id }}"
+            },
+            {
+              "name": "chat_message_id",
+              "value": "={{ $('Extract Message Data').item.json.chat_message_id }}"
+            },
+            {
+              "name": "properties",
+              "value": "={{ $json.properties }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "create-deal",
+      "name": "Create Deal",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [900, 500]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:5000/api/hubspot/activities/meetings",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_JWT_TOKEN_HERE"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "session_id",
+              "value": "={{ $('Extract Message Data').item.json.session_id }}"
+            },
+            {
+              "name": "chat_message_id",
+              "value": "={{ $('Extract Message Data').item.json.chat_message_id }}"
+            },
+            {
+              "name": "activity_type",
+              "value": "MEETING"
+            },
+            {
+              "name": "properties",
+              "value": "={{ $json.properties }}"
+            },
+            {
+              "name": "associations",
+              "value": "{}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "create-meeting",
+      "name": "Create Meeting",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [900, 600]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:5000/api/whatsapp/send",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_JWT_TOKEN_HERE"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "to",
+              "value": "={{ $('Extract Message Data').item.json.from_number }}"
+            },
+            {
+              "name": "message",
+              "value": "={{ $json.response_message }}"
+            },
+            {
+              "name": "session_id",
+              "value": "={{ $('Extract Message Data').item.json.session_id }}"
+            },
+            {
+              "name": "message_id",
+              "value": "={{ $('Extract Message Data').item.json.chat_message_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "send-response",
+      "name": "Send WhatsApp Response",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1120, 480]
+    }
+  ],
+  "connections": {
+    "WhatsApp Webhook": {
+      "main": [
+        [
+          {
+            "node": "Webhook Response",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Extract Message Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Message Data": {
+      "main": [
+        [
+          {
+            "node": "AI Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Analysis": {
+      "main": [
+        [
+          {
+            "node": "Route by Action",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by Action": {
+      "main": [
+        [
+          {
+            "node": "Create Contact",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create Company",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create Deal",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create Meeting",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Contact": {
+      "main": [
+        [
+          {
+            "node": "Send WhatsApp Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Company": {
+      "main": [
+        [
+          {
+            "node": "Send WhatsApp Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Deal": {
+      "main": [
+        [
+          {
+            "node": "Send WhatsApp Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Meeting": {
+      "main": [
+        [
+          {
+            "node": "Send WhatsApp Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2024-01-01T00:00:00.000Z",
+  "versionId": "1"
+}

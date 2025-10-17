@@ -17,7 +17,7 @@ class Log(db.Model):
     chat_message_id = Column(Integer, ForeignKey('chat_messages.id'), nullable=False)
 
     # Log details
-    log_type = Column(String(50), nullable=False)  # contact_action, deal, note, task, communication, call_meeting, association
+    log_type = Column(String(50), nullable=False)  # contact_action, deal, note, task, communication, call_meeting, association, lead, lead_qualification, deal_stage_update
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     # HubSpot integration
@@ -25,6 +25,13 @@ class Log(db.Model):
     sync_status = Column(String(20), default='pending', nullable=False)  # pending, synced, failed
     sync_error = Column(Text, nullable=True)
     synced_at = Column(DateTime, nullable=True)
+    
+    # Additional tracking fields for leads and deal stages
+    lead_status = Column(String(50), nullable=True)  # NEW, CONTACTED, QUALIFIED, UNQUALIFIED, CONVERTED
+    deal_stage = Column(String(50), nullable=True)  # appointmentscheduled, qualifiedtobuy, presentationscheduled, etc.
+    lead_source = Column(String(50), nullable=True)  # WhatsApp, Website, Referral, etc.
+    deal_amount = Column(String(20), nullable=True)  # Deal amount for financial tracking
+    stage_reason = Column(Text, nullable=True)  # Reason for stage change
 
     # Relationships
     user = relationship('User', backref='logs')
@@ -62,6 +69,11 @@ class Log(db.Model):
             'sync_status': self.sync_status,
             'sync_error': self.sync_error,
             'synced_at': self.synced_at.isoformat() if self.synced_at else None,
+            'lead_status': self.lead_status,
+            'deal_stage': self.deal_stage,
+            'lead_source': self.lead_source,
+            'deal_amount': self.deal_amount,
+            'stage_reason': self.stage_reason,
             'message': self.message.to_dict() if self.message else None
         }
 

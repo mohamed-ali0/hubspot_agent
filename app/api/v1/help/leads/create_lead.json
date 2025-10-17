@@ -1,0 +1,121 @@
+{
+  "title": "POST Create Lead",
+  "description": "Create a new lead in HubSpot with lead-specific properties and lifecycle stage",
+  "method": "POST",
+  "endpoint": "/api/hubspot/leads/leads",
+  "authentication": "Bearer token required",
+  "request": {
+    "url": "/api/hubspot/leads/leads",
+    "method": "POST",
+    "headers": {
+      "Authorization": "Bearer {jwt_token}",
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "session_id": {
+        "type": "integer",
+        "required": true,
+        "description": "Chat session ID for logging purposes"
+      },
+      "chat_message_id": {
+        "type": "integer",
+        "required": true,
+        "description": "Chat message ID that triggered this action"
+      },
+      "firstname": {
+        "type": "string",
+        "required": true,
+        "description": "Lead's first name"
+      },
+      "lastname": {
+        "type": "string",
+        "required": true,
+        "description": "Lead's last name"
+      },
+      "email": {
+        "type": "string",
+        "required": true,
+        "description": "Lead's email address"
+      },
+      "phone": {
+        "type": "string",
+        "required": false,
+        "description": "Lead's phone number"
+      },
+      "company": {
+        "type": "string",
+        "required": false,
+        "description": "Lead's company name"
+      },
+      "lead_source": {
+        "type": "string",
+        "required": false,
+        "default": "WhatsApp",
+        "description": "Source of the lead"
+      },
+      "lead_status": {
+        "type": "string",
+        "required": false,
+        "default": "NEW",
+        "description": "Current status of the lead"
+      }
+    }
+  },
+  "response": {
+    "success": {
+      "status_code": 201,
+      "body": {
+        "success": true,
+        "hubspot_id": "12345",
+        "data": {
+          "id": "12345",
+          "properties": {
+            "firstname": "John",
+            "lastname": "Doe",
+            "email": "john.doe@example.com",
+            "phone": "+1234567890",
+            "company": "Acme Corp",
+            "lead_status": "NEW",
+            "lead_source": "WhatsApp",
+            "lifecyclestage": "lead"
+          },
+          "createdAt": "2025-01-15T10:00:00Z",
+          "updatedAt": "2025-01-15T10:00:00Z"
+        },
+        "message": "Lead created successfully"
+      }
+    },
+    "error": {
+      "status_code": 400,
+      "body": {
+        "error": "Validation error",
+        "details": {
+          "firstname": ["This field is required"]
+        }
+      }
+    }
+  },
+  "tips": [
+    "Leads are created with 'lifecyclestage' set to 'lead'",
+    "Use meaningful lead_source values like 'WhatsApp', 'Website', 'Referral'",
+    "Lead status can be: NEW, CONTACTED, QUALIFIED, UNQUALIFIED, CONVERTED",
+    "All lead creation is automatically logged to the database",
+    "Leads can be qualified later using the /qualify endpoint",
+    "Use company field to track lead's organization"
+  ],
+  "examples": {
+    "basic_lead": {
+      "description": "Create a basic lead",
+      "curl": "curl -X POST 'http://127.0.0.1:5000/api/hubspot/leads/leads' -H 'Authorization: Bearer {token}' -H 'Content-Type: application/json' -d '{\"session_id\": 1, \"chat_message_id\": 5, \"firstname\": \"John\", \"lastname\": \"Doe\", \"email\": \"john@example.com\"}'"
+    },
+    "complete_lead": {
+      "description": "Create a lead with all properties",
+      "curl": "curl -X POST 'http://127.0.0.1:5000/api/hubspot/leads/leads' -H 'Authorization: Bearer {token}' -H 'Content-Type: application/json' -d '{\"session_id\": 1, \"chat_message_id\": 5, \"firstname\": \"John\", \"lastname\": \"Doe\", \"email\": \"john@example.com\", \"phone\": \"+1234567890\", \"company\": \"Acme Corp\", \"lead_source\": \"WhatsApp\", \"lead_status\": \"NEW\"}'"
+    }
+  },
+  "related_endpoints": [
+    "/api/hubspot/leads/leads (GET)",
+    "/api/hubspot/leads/leads/{id}/qualify",
+    "/api/hubspot/leads/leads/analytics"
+  ]
+}

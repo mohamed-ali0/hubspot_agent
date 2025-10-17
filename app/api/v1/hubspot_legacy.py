@@ -73,8 +73,9 @@ def test_connection():
 def get_contacts():
     """Get contacts from HubSpot"""
     try:
+        current_user_id = get_jwt_identity()
         limit = request.args.get('limit', 10, type=int)
-        result = HubSpotService.get_contacts(limit=limit)
+        result = HubSpotService.get_contacts(limit=limit, user_id=current_user_id)
         return jsonify(result), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -129,8 +130,9 @@ def create_contact():
 def get_deals():
     """Get deals from HubSpot"""
     try:
+        current_user_id = get_jwt_identity()
         limit = request.args.get('limit', 10, type=int)
-        result = HubSpotService.get_deals(limit=limit)
+        result = HubSpotService.get_deals(limit=limit, user_id=current_user_id)
         return jsonify(result), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500

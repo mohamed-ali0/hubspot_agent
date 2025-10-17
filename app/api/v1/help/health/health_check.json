@@ -1,0 +1,52 @@
+{
+  "title": "GET Health Check",
+  "description": "Check system health status including database and HubSpot API connectivity",
+  "method": "GET",
+  "endpoint": "/api/health",
+  "authentication": "None required",
+  "request": {
+    "url": "/api/health",
+    "method": "GET",
+    "headers": {
+      "Content-Type": "application/json"
+    }
+  },
+  "response": {
+    "success": {
+      "status_code": 200,
+      "body": {
+        "status": "healthy",
+        "database": "connected",
+        "hubspot_api": "configured",
+        "timestamp": "2025-01-15T10:00:00Z",
+        "message": "HubSpot Logging AI Agent is running!"
+      }
+    },
+    "error": {
+      "status_code": 500,
+      "body": {
+        "status": "unhealthy",
+        "database": "error",
+        "hubspot_api": "not_configured",
+        "timestamp": "2025-01-15T10:00:00Z",
+        "error": "Database connection failed"
+      }
+    }
+  },
+  "tips": [
+    "Use this endpoint to monitor system health",
+    "Check 'database' status to ensure data connectivity",
+    "Check 'hubspot_api' status to verify HubSpot integration",
+    "Use this endpoint for load balancer health checks",
+    "Monitor the timestamp to ensure the system is responsive"
+  ],
+  "examples": {
+    "basic_check": {
+      "description": "Check system health",
+      "curl": "curl -X GET 'http://127.0.0.1:5000/api/health'"
+    }
+  },
+  "related_endpoints": [
+    "/api/health/test"
+  ]
+}

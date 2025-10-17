@@ -1,0 +1,112 @@
+{
+  "title": "POST Qualify Lead",
+  "description": "Qualify a lead and optionally create a deal in HubSpot",
+  "method": "POST",
+  "endpoint": "/api/hubspot/leads/leads/{lead_id}/qualify",
+  "authentication": "Bearer token required",
+  "request": {
+    "url": "/api/hubspot/leads/leads/{lead_id}/qualify",
+    "method": "POST",
+    "headers": {
+      "Authorization": "Bearer {jwt_token}",
+      "Content-Type": "application/json"
+    },
+    "path_parameters": {
+      "lead_id": {
+        "type": "string",
+        "required": true,
+        "description": "HubSpot lead/contact ID to qualify"
+      }
+    },
+    "body": {
+      "session_id": {
+        "type": "integer",
+        "required": true,
+        "description": "Chat session ID for logging purposes"
+      },
+      "chat_message_id": {
+        "type": "integer",
+        "required": true,
+        "description": "Chat message ID that triggered this action"
+      },
+      "lead_status": {
+        "type": "string",
+        "required": false,
+        "default": "QUALIFIED",
+        "description": "New lead status after qualification"
+      },
+      "create_deal": {
+        "type": "boolean",
+        "required": false,
+        "default": false,
+        "description": "Whether to create a deal for this qualified lead"
+      },
+      "deal_name": {
+        "type": "string",
+        "required": false,
+        "description": "Name for the deal (if create_deal is true)"
+      },
+      "deal_amount": {
+        "type": "string",
+        "required": false,
+        "description": "Deal amount (if create_deal is true)"
+      },
+      "deal_stage": {
+        "type": "string",
+        "required": false,
+        "default": "appointmentscheduled",
+        "description": "Initial deal stage (if create_deal is true)"
+      },
+      "close_date": {
+        "type": "string",
+        "required": false,
+        "description": "Expected close date (if create_deal is true)"
+      }
+    }
+  },
+  "response": {
+    "success": {
+      "status_code": 200,
+      "body": {
+        "success": true,
+        "contact_updated": true,
+        "deal_created": true,
+        "deal_id": "67890",
+        "message": "Lead qualified successfully"
+      }
+    },
+    "error": {
+      "status_code": 400,
+      "body": {
+        "error": "Validation error",
+        "details": {
+          "lead_id": ["Invalid lead ID"]
+        }
+      }
+    }
+  },
+  "tips": [
+    "Qualifying a lead updates its lifecycle stage to 'opportunity'",
+    "Set create_deal=true to automatically create a deal for qualified leads",
+    "Deal stages: appointmentscheduled, qualifiedtobuy, presentation scheduled, decision maker bought-in, closed-won, closed-lost",
+    "Use meaningful deal names that include the company or opportunity details",
+    "Set realistic close dates for better pipeline management",
+    "All qualification activities are logged to the database",
+    "Qualified leads can be tracked through the sales pipeline"
+  ],
+  "examples": {
+    "qualify_only": {
+      "description": "Qualify a lead without creating a deal",
+      "curl": "curl -X POST 'http://127.0.0.1:5000/api/hubspot/leads/leads/12345/qualify' -H 'Authorization: Bearer {token}' -H 'Content-Type: application/json' -d '{\"session_id\": 1, \"chat_message_id\": 6, \"lead_status\": \"QUALIFIED\", \"create_deal\": false}'"
+    },
+    "qualify_with_deal": {
+      "description": "Qualify a lead and create a deal",
+      "curl": "curl -X POST 'http://127.0.0.1:5000/api/hubspot/leads/leads/12345/qualify' -H 'Authorization: Bearer {token}' -H 'Content-Type: application/json' -d '{\"session_id\": 1, \"chat_message_id\": 6, \"lead_status\": \"QUALIFIED\", \"create_deal\": true, \"deal_name\": \"Acme Corp - Premium Package\", \"deal_amount\": \"50000\", \"deal_stage\": \"appointmentscheduled\", \"close_date\": \"2025-02-15T00:00:00Z\"}'"
+    }
+  },
+  "related_endpoints": [
+    "/api/hubspot/leads/leads (GET)",
+    "/api/hubspot/leads/leads (POST)",
+    "/api/hubspot/deals/deals/{id}/stages (PATCH)"
+  ]
+}
