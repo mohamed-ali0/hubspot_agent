@@ -69,7 +69,7 @@ echo "🔨 Building Docker image..."
 docker-compose build
 
 echo "🚀 Starting HubSpot AI Agent..."
-docker-compose up -d
+docker-compose up --build -d --remove-orphans
 
 echo "⏳ Waiting for application to start..."
 sleep 10

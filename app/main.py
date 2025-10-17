@@ -78,9 +78,13 @@ def create_app(config_class=None):
         print(f"[WARNING] Model import error: {e}")
         # Continue without models for now
 
-    # Register blueprints
-    from app.api.v1 import auth, users, sessions, messages, logs, stats, health, help, whatsapp
-    from app.api.v1.hubspot import contacts_bp, companies_bp, deals_bp, notes_bp, tasks_bp, activities_bp, associations_bp, leads_bp
+    # Register blueprints - import after models are loaded
+    try:
+        from app.api.v1 import auth, users, sessions, messages, logs, stats, health, help, whatsapp
+        from app.api.v1.hubspot import contacts_bp, companies_bp, deals_bp, notes_bp, tasks_bp, activities_bp, associations_bp, leads_bp
+    except Exception as e:
+        print(f"[WARNING] Blueprint import error: {e}")
+        # Continue without some blueprints if needed
     
     # Core API blueprints
     app.register_blueprint(auth.bp, url_prefix='/api/auth')
