@@ -3,35 +3,80 @@ HubSpot Companies API - Complete CRUD operations with logging
 """
 
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity
 from app.services.hubspot_service import HubSpotService
 from app.models import User, Log, ChatSession, ChatMessage
 from app.db.database import db
 from marshmallow import Schema, fields, ValidationError
 from datetime import datetime
+import jwt
+from flask import current_app
 
 bp = Blueprint('hubspot_companies', __name__)
 
+def authenticate_from_body():
+    """Authenticate user from token in request body"""
+    try:
+        # Get token from request body
+        if request.is_json:
+            token = request.json.get('token')
+        else:
+            token = request.form.get('token')
+        
+        if not token:
+            return None, jsonify({'error': 'Token is required in request body'}), 401
+        
+        # Decode JWT token directly
+        try:
+            # Get the secret key from Flask app config
+            secret_key = current_app.config.get('JWT_SECRET_KEY')
+            if not secret_key:
+                return None, jsonify({'error': 'JWT secret key not configured'}), 500
+            
+            # Decode the token
+            decoded_token = jwt.decode(token, secret_key, algorithms=['HS256'])
+            user_id = decoded_token.get('sub')  # 'sub' is the user ID in JWT
+            
+            if not user_id:
+                return None, jsonify({'error': 'Invalid token: no user ID found'}), 401
+            
+            return user_id, None, None
+            
+        except jwt.ExpiredSignatureError:
+            return None, jsonify({'error': 'Token has expired'}), 401
+        except jwt.InvalidTokenError as e:
+            return None, jsonify({'error': f'Invalid token: {str(e)}'}), 401
+            
+    except Exception as e:
+        return None, jsonify({'error': f'Authentication error: {str(e)}'}), 401
+
 # Request schemas
 class CompanyCreateSchema(Schema):
+    token = fields.Str(required=True)
     session_id = fields.Int(required=True)
     chat_message_id = fields.Int(required=True)
     properties = fields.Dict(required=True)
 
 class CompanyUpdateSchema(Schema):
+    token = fields.Str(required=True)
     session_id = fields.Int(required=True)
     chat_message_id = fields.Int(required=True)
     properties = fields.Dict(required=True)
 
 class CompanySearchSchema(Schema):
+    token = fields.Str(required=True)
     session_id = fields.Int(required=True)
     chat_message_id = fields.Int(required=True)
     search_term = fields.Str(required=True)
+
+class CompanyGetSchema(Schema):
+    token = fields.Str(required=True)
 
 # Initialize schemas
 company_create_schema = CompanyCreateSchema()
 company_update_schema = CompanyUpdateSchema()
 company_search_schema = CompanySearchSchema()
+company_get_schema = CompanyGetSchema()
 
 def _create_log(user_id, session_id, message_id, log_type, hubspot_id, sync_status, sync_error=None):
     """Create a log entry for HubSpot operations"""
@@ -56,11 +101,17 @@ def _create_log(user_id, session_id, message_id, log_type, hubspot_id, sync_stat
 # ========== GET OPERATIONS ==========
 
 @bp.route('/companies', methods=['GET'])
-@jwt_required()
 def get_companies():
     """Get all companies from HubSpot"""
     try:
-        current_user_id = get_jwt_identity()
+        # Authenticate from body
+        current_user_id, error_response, status_code = authenticate_from_body()
+        if error_response:
+            return error_response, status_code
+        
+        # Validate request body
+        data = company_get_schema.load(request.get_json())
+        
         limit = request.args.get('limit', 10, type=int)
         properties = request.args.getlist('properties')
         
@@ -79,15 +130,22 @@ def get_companies():
         
         return jsonify(result), 200
         
+    except ValidationError as e:
+        return jsonify({'error': 'Validation error', 'details': e.messages}), 400
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 @bp.route('/companies/<company_id>', methods=['GET'])
-@jwt_required()
 def get_company(company_id):
     """Get specific company by ID"""
     try:
-        current_user_id = get_jwt_identity()
+        # Authenticate from body
+        current_user_id, error_response, status_code = authenticate_from_body()
+        if error_response:
+            return error_response, status_code
+        
+        # Validate request body
+        data = company_get_schema.load(request.get_json())
         
         # Get company from HubSpot
         result = HubSpotService.get_company_by_id(company_id)
@@ -104,15 +162,22 @@ def get_company(company_id):
         
         return jsonify(result), 200
         
+    except ValidationError as e:
+        return jsonify({'error': 'Validation error', 'details': e.messages}), 400
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 @bp.route('/properties', methods=['GET'])
-@jwt_required()
 def get_company_properties():
     """Get company properties from HubSpot"""
     try:
-        current_user_id = get_jwt_identity()
+        # Authenticate from body
+        current_user_id, error_response, status_code = authenticate_from_body()
+        if error_response:
+            return error_response, status_code
+        
+        # Validate request body
+        data = company_get_schema.load(request.get_json())
         
         # Get company properties from HubSpot
         result = HubSpotService.get_company_properties(user_id=current_user_id)
@@ -129,15 +194,20 @@ def get_company_properties():
         
         return jsonify(result), 200
         
+    except ValidationError as e:
+        return jsonify({'error': 'Validation error', 'details': e.messages}), 400
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 @bp.route('/companies/search', methods=['POST'])
-@jwt_required()
 def search_companies():
     """Search companies in HubSpot"""
     try:
-        current_user_id = get_jwt_identity()
+        # Authenticate from body
+        current_user_id, error_response, status_code = authenticate_from_body()
+        if error_response:
+            return error_response, status_code
+        
         data = company_search_schema.load(request.get_json())
         
         # Search companies in HubSpot
@@ -166,11 +236,14 @@ def search_companies():
 # ========== CREATE OPERATIONS ==========
 
 @bp.route('/companies', methods=['POST'])
-@jwt_required()
 def create_company():
     """Create company in HubSpot and log to database"""
     try:
-        current_user_id = get_jwt_identity()
+        # Authenticate from body
+        current_user_id, error_response, status_code = authenticate_from_body()
+        if error_response:
+            return error_response, status_code
+        
         data = company_create_schema.load(request.get_json())
         
         # Create company in HubSpot
@@ -198,11 +271,14 @@ def create_company():
 # ========== UPDATE OPERATIONS ==========
 
 @bp.route('/companies/<company_id>', methods=['PATCH'])
-@jwt_required()
 def update_company(company_id):
     """Update company in HubSpot and log to database"""
     try:
-        current_user_id = get_jwt_identity()
+        # Authenticate from body
+        current_user_id, error_response, status_code = authenticate_from_body()
+        if error_response:
+            return error_response, status_code
+        
         data = company_update_schema.load(request.get_json())
         
         # Update company in HubSpot
@@ -229,11 +305,14 @@ def update_company(company_id):
         return jsonify({'error': str(e)}), 500
 
 @bp.route('/companies/<company_id>', methods=['PUT'])
-@jwt_required()
 def replace_company(company_id):
     """Replace company in HubSpot and log to database"""
     try:
-        current_user_id = get_jwt_identity()
+        # Authenticate from body
+        current_user_id, error_response, status_code = authenticate_from_body()
+        if error_response:
+            return error_response, status_code
+        
         data = company_update_schema.load(request.get_json())
         
         # Replace company in HubSpot
@@ -262,11 +341,17 @@ def replace_company(company_id):
 # ========== DELETE OPERATIONS ==========
 
 @bp.route('/companies/<company_id>', methods=['DELETE'])
-@jwt_required()
 def delete_company(company_id):
     """Delete company from HubSpot and log to database"""
     try:
-        current_user_id = get_jwt_identity()
+        # Authenticate from body
+        current_user_id, error_response, status_code = authenticate_from_body()
+        if error_response:
+            return error_response, status_code
+        
+        # Validate request body
+        data = company_get_schema.load(request.get_json())
+        
         session_id = request.json.get('session_id', 0) if request.is_json else 0
         message_id = request.json.get('chat_message_id', 0) if request.is_json else 0
         
@@ -286,17 +371,22 @@ def delete_company(company_id):
         else:
             return jsonify({'error': result.get('error')}), 400
             
+    except ValidationError as e:
+        return jsonify({'error': 'Validation error', 'details': e.messages}), 400
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 # ========== BATCH OPERATIONS ==========
 
 @bp.route('/companies/batch', methods=['POST'])
-@jwt_required()
 def batch_create_companies():
     """Create multiple companies in batch"""
     try:
-        current_user_id = get_jwt_identity()
+        # Authenticate from body
+        current_user_id, error_response, status_code = authenticate_from_body()
+        if error_response:
+            return error_response, status_code
+        
         data = request.get_json()
         
         companies_data = data.get('companies', [])
@@ -320,11 +410,14 @@ def batch_create_companies():
         return jsonify({'error': str(e)}), 500
 
 @bp.route('/companies/batch', methods=['PATCH'])
-@jwt_required()
 def batch_update_companies():
     """Update multiple companies in batch"""
     try:
-        current_user_id = get_jwt_identity()
+        # Authenticate from body
+        current_user_id, error_response, status_code = authenticate_from_body()
+        if error_response:
+            return error_response, status_code
+        
         data = request.get_json()
         
         companies_data = data.get('companies', [])
@@ -351,11 +444,13 @@ def batch_update_companies():
 
 
 @bp.route('/companies/properties/<property_name>', methods=['GET'])
-@jwt_required()
 def get_company_property(property_name):
     """Get specific company property schema"""
     try:
-        current_user_id = get_jwt_identity()
+        # Authenticate from body
+        current_user_id, error_response, status_code = authenticate_from_body()
+        if error_response:
+            return error_response, status_code
         
         # Get specific property from HubSpot
         result = HubSpotService.get_company_property(property_name)
