@@ -168,14 +168,14 @@ if __name__ == '__main__':
         except Exception as e:
             print(f"[ERROR] Database initialization error: {e}")
     
-           print("[START] Starting Flask application...")
-           print("[INFO] Server will be available at: http://127.0.0.1:5012")
-           print("[INFO] Health check: http://127.0.0.1:5012/api/health")
+        print("[START] Starting Flask application...")
+        print("[INFO] Server will be available at: http://127.0.0.1:5012")
+        print("[INFO] Health check: http://127.0.0.1:5012/api/health")
     
     # Use Gunicorn in production/Docker, Flask dev server otherwise
     if app.config.get('FLASK_ENV') == 'production' or app.config.get('IGNORE_DATABASE_PERSISTENCE', False):
         print("[INFO] Starting with Gunicorn for production...")
         # This will be handled by the Dockerfile CMD
-        app.run(host='0.0.0.0', port=5000, debug=False)
+        app.run(host='0.0.0.0', port=5012, debug=False)
     else:
-        app.run(debug=True, host='0.0.0.0', port=5000)
+        app.run(debug=True, host='0.0.0.0', port=5012)
