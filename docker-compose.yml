@@ -6,25 +6,19 @@ services:
     ports:
       - "5000:5000"
     environment:
-      # Flask Configuration
-      - FLASK_APP=main.py
-      - FLASK_ENV=production
-      - SECRET_KEY=${SECRET_KEY:-your-secret-key-change-in-production}
-      # Database Configuration (using in-memory SQLite for Docker)
-      - DATABASE_URL=sqlite:///:memory:
-      # HubSpot Configuration
-      - HUBSPOT_API_URL=https://api.hubapi.com
-      - HUBSPOT_ACCESS_TOKEN=${HUBSPOT_ACCESS_TOKEN}
-      # JWT Configuration
-      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-your-jwt-secret-key}
-      - JWT_ACCESS_TOKEN_EXPIRES=3600
-      # Twilio Configuration
-      - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID}
-      - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN}
-      - TWILIO_WHATSAPP_NUMBER=${TWILIO_WHATSAPP_NUMBER}
-      - TWILIO_WEBHOOK_URL=${TWILIO_WEBHOOK_URL}
-      # WhatsApp Configuration
-      - WHATSAPP_WEBHOOK_VERIFY_TOKEN=${WHATSAPP_WEBHOOK_VERIFY_TOKEN}
+      FLASK_APP: main.py
+      FLASK_ENV: production
+      SECRET_KEY: ${SECRET_KEY:-your-secret-key-change-in-production}
+      DATABASE_URL: sqlite:///:memory:
+      HUBSPOT_API_URL: https://api.hubapi.com
+      HUBSPOT_ACCESS_TOKEN: ${HUBSPOT_ACCESS_TOKEN}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-your-jwt-secret-key}
+      JWT_ACCESS_TOKEN_EXPIRES: 3600
+      TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID}
+      TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN}
+      TWILIO_WHATSAPP_NUMBER: ${TWILIO_WHATSAPP_NUMBER}
+      TWILIO_WEBHOOK_URL: ${TWILIO_WEBHOOK_URL}
+      WHATSAPP_WEBHOOK_VERIFY_TOKEN: ${WHATSAPP_WEBHOOK_VERIFY_TOKEN}
     volumes:
       # Mount logs directory for persistence
       - ./logs:/app/logs
