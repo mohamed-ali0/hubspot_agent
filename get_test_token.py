@@ -11,7 +11,7 @@ def get_test_token():
     """Get JWT token for test user"""
     
     # Configuration
-    base_url = "http://127.0.0.1:5000"
+    base_url = "http://89.117.63.196:5000"
     username = "test"
     password = "test"
     

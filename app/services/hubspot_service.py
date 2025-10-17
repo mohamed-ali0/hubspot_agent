@@ -232,6 +232,31 @@ class HubSpotService:
             raise Exception(f"HubSpot API error: {response.status_code} - {response.text}")
 
     @staticmethod
+    def search_companies(search_term, limit=10, user_id=None):
+        """Search HubSpot companies"""
+        search_data = {
+            "query": search_term,
+            "limit": limit,
+            "filterGroups": [
+                {
+                    "filters": [
+                        {
+                            "propertyName": "name",
+                            "operator": "CONTAINS_TOKEN",
+                            "value": search_term
+                        }
+                    ]
+                }
+            ]
+        }
+
+        response = HubSpotService.make_request('POST', '/crm/v3/objects/companies/search', data=search_data, user_id=user_id)
+        if response.status_code == 200:
+            return response.json()
+        else:
+            raise Exception(f"HubSpot API error: {response.status_code} - {response.text}")
+
+    @staticmethod
     def get_company_by_id(company_id, user_id=None):
         """Get specific company by ID"""
         response = HubSpotService.make_request('GET', f'/crm/v3/objects/companies/{company_id}', user_id=user_id)

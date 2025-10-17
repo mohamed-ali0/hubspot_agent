@@ -59,6 +59,7 @@ class CompanyCreateSchema(Schema):
 
 class CompanyUpdateSchema(Schema):
     token = fields.Str(required=True)
+    company_id = fields.Str(required=True)
     session_id = fields.Int(required=True)
     chat_message_id = fields.Int(required=True)
     properties = fields.Dict(required=True)
@@ -71,12 +72,33 @@ class CompanySearchSchema(Schema):
 
 class CompanyGetSchema(Schema):
     token = fields.Str(required=True)
+    limit = fields.Int(missing=10)
+    properties = fields.List(fields.Str(), missing=[])
+
+class CompanyGetByIdSchema(Schema):
+    token = fields.Str(required=True)
+    company_id = fields.Str(required=True)
+
+class CompanySearchSchema(Schema):
+    token = fields.Str(required=True)
+    session_id = fields.Int(required=True)
+    chat_message_id = fields.Int(required=True)
+    search_term = fields.Str(required=True)
+    limit = fields.Int(missing=10)
+
+class CompanyDeleteSchema(Schema):
+    token = fields.Str(required=True)
+    company_id = fields.Str(required=True)
+    session_id = fields.Int(missing=0)
+    chat_message_id = fields.Int(missing=0)
 
 # Initialize schemas
 company_create_schema = CompanyCreateSchema()
 company_update_schema = CompanyUpdateSchema()
 company_search_schema = CompanySearchSchema()
 company_get_schema = CompanyGetSchema()
+company_get_by_id_schema = CompanyGetByIdSchema()
+company_delete_schema = CompanyDeleteSchema()
 
 def _create_log(user_id, session_id, message_id, log_type, hubspot_id, sync_status, sync_error=None):
     """Create a log entry for HubSpot operations"""
@@ -112,8 +134,9 @@ def get_companies():
         # Validate request body
         data = company_get_schema.load(request.get_json())
         
-        limit = request.args.get('limit', 10, type=int)
-        properties = request.args.getlist('properties')
+        # Get parameters from body instead of query
+        limit = data.get('limit', 10)
+        properties = data.get('properties', [])
         
         # Get companies from HubSpot
         result = HubSpotService.get_companies(limit=limit, user_id=current_user_id, properties=properties)
@@ -135,8 +158,8 @@ def get_companies():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@bp.route('/companies/<company_id>', methods=['GET'])
-def get_company(company_id):
+@bp.route('/companies/get', methods=['POST'])
+def get_company():
     """Get specific company by ID"""
     try:
         # Authenticate from body
@@ -145,10 +168,11 @@ def get_company(company_id):
             return error_response, status_code
         
         # Validate request body
-        data = company_get_schema.load(request.get_json())
+        data = company_get_by_id_schema.load(request.get_json())
+        company_id = data['company_id']
         
         # Get company from HubSpot
-        result = HubSpotService.get_company_by_id(company_id)
+        result = HubSpotService.get_company_by_id(company_id, user_id=current_user_id)
         
         # Log the operation
         _create_log(
@@ -210,10 +234,11 @@ def search_companies():
         
         data = company_search_schema.load(request.get_json())
         
-        # Search companies in HubSpot
+        # Search companies in HubSpot using body parameters
         result = HubSpotService.search_companies(
             search_term=data['search_term'],
-            limit=request.args.get('limit', 10, type=int)
+            limit=data.get('limit', 10),
+            user_id=current_user_id
         )
         
         # Log the operation
@@ -270,8 +295,8 @@ def create_company():
 
 # ========== UPDATE OPERATIONS ==========
 
-@bp.route('/companies/<company_id>', methods=['PATCH'])
-def update_company(company_id):
+@bp.route('/companies/update', methods=['POST'])
+def update_company():
     """Update company in HubSpot and log to database"""
     try:
         # Authenticate from body
@@ -280,6 +305,7 @@ def update_company(company_id):
             return error_response, status_code
         
         data = company_update_schema.load(request.get_json())
+        company_id = data['company_id']
         
         # Update company in HubSpot
         result = HubSpotService.update_company(
@@ -304,8 +330,8 @@ def update_company(company_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@bp.route('/companies/<company_id>', methods=['PUT'])
-def replace_company(company_id):
+@bp.route('/companies/replace', methods=['POST'])
+def replace_company():
     """Replace company in HubSpot and log to database"""
     try:
         # Authenticate from body
@@ -314,6 +340,7 @@ def replace_company(company_id):
             return error_response, status_code
         
         data = company_update_schema.load(request.get_json())
+        company_id = data['company_id']
         
         # Replace company in HubSpot
         result = HubSpotService.replace_company(
@@ -340,8 +367,8 @@ def replace_company(company_id):
 
 # ========== DELETE OPERATIONS ==========
 
-@bp.route('/companies/<company_id>', methods=['DELETE'])
-def delete_company(company_id):
+@bp.route('/companies/delete', methods=['POST'])
+def delete_company():
     """Delete company from HubSpot and log to database"""
     try:
         # Authenticate from body
@@ -350,16 +377,14 @@ def delete_company(company_id):
             return error_response, status_code
         
         # Validate request body
-        data = company_get_schema.load(request.get_json())
-        
-        session_id = request.json.get('session_id', 0) if request.is_json else 0
-        message_id = request.json.get('chat_message_id', 0) if request.is_json else 0
+        data = company_delete_schema.load(request.get_json())
+        company_id = data['company_id']
         
         # Delete company from HubSpot
         result = HubSpotService.delete_company(
             company_id=company_id,
-            session_id=session_id,
-            message_id=message_id,
+            session_id=data.get('session_id', 0),
+            message_id=data.get('chat_message_id', 0),
             user_id=current_user_id
         )
         
@@ -443,14 +468,21 @@ def batch_update_companies():
 # ========== PROPERTIES OPERATIONS ==========
 
 
-@bp.route('/companies/properties/<property_name>', methods=['GET'])
-def get_company_property(property_name):
+@bp.route('/companies/properties/get', methods=['POST'])
+def get_company_property():
     """Get specific company property schema"""
     try:
         # Authenticate from body
         current_user_id, error_response, status_code = authenticate_from_body()
         if error_response:
             return error_response, status_code
+        
+        # Get property name from body
+        data = request.get_json()
+        property_name = data.get('property_name')
+        
+        if not property_name:
+            return jsonify({'error': 'property_name is required in request body'}), 400
         
         # Get specific property from HubSpot
         result = HubSpotService.get_company_property(property_name)
