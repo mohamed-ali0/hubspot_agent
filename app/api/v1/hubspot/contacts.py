@@ -66,23 +66,23 @@ class ContactUpdateSchema(Schema):
 
 class ContactSearchSchema(Schema):
     token = fields.Str(required=True)
-    session_id = fields.Int(required=True)
-    chat_message_id = fields.Int(required=True)
+    session_id = fields.Int(missing=0)  # Optional for general queries
+    chat_message_id = fields.Int(missing=0)  # Optional for general queries
     search_term = fields.Str(required=True)
     limit = fields.Int(missing=10)
 
 class ContactGetSchema(Schema):
     token = fields.Str(required=True)
-    session_id = fields.Int(required=True)
-    chat_message_id = fields.Int(required=True)
+    session_id = fields.Int(missing=0)  # Optional for general queries
+    chat_message_id = fields.Int(missing=0)  # Optional for general queries
     limit = fields.Int(missing=10)
     properties = fields.Raw(missing=[])  # Accept both list and string
 
 class ContactGetByIdSchema(Schema):
     token = fields.Str(required=True)
     contact_id = fields.Str(required=True)
-    session_id = fields.Int(required=True)
-    chat_message_id = fields.Int(required=True)
+    session_id = fields.Int(missing=0)  # Optional for getters
+    chat_message_id = fields.Int(missing=0)  # Optional for getters
 
 class ContactDeleteSchema(Schema):
     token = fields.Str(required=True)
@@ -136,15 +136,16 @@ def get_contacts():
         # Get contacts from HubSpot
         result = HubSpotService.get_contacts(limit=limit, user_id=current_user_id, properties=properties)
         
-        # Log the operation
-        _create_log(
-            user_id=current_user_id,
-            session_id=0,  # No specific session for general queries
-            message_id=0,  # No specific message for general queries
-            log_type='contact_action',
-            hubspot_id='multiple',
-            sync_status='synced'
-        )
+        # Log the operation (only if session_id and chat_message_id are provided)
+        if data.get('session_id', 0) > 0 and data.get('chat_message_id', 0) > 0:
+            _create_log(
+                user_id=current_user_id,
+                session_id=data['session_id'],
+                message_id=data['chat_message_id'],
+                log_type='contact_action',
+                hubspot_id='multiple',
+                sync_status='synced'
+            )
         
         return jsonify(result), 200
         
@@ -166,15 +167,16 @@ def get_contact():
         # Get contact from HubSpot
         result = HubSpotService.get_contact_by_id(contact_id, user_id=current_user_id)
         
-        # Log the operation
-        _create_log(
-            user_id=current_user_id,
-            session_id=data['session_id'],
-            message_id=data['chat_message_id'],
-            log_type='contact_action',
-            hubspot_id=contact_id,
-            sync_status='synced'
-        )
+        # Log the operation (only if session_id and chat_message_id are provided)
+        if data.get('session_id', 0) > 0 and data.get('chat_message_id', 0) > 0:
+            _create_log(
+                user_id=current_user_id,
+                session_id=data['session_id'],
+                message_id=data['chat_message_id'],
+                log_type='contact_action',
+                hubspot_id=contact_id,
+                sync_status='synced'
+            )
         
         return jsonify(result), 200
         
@@ -228,15 +230,16 @@ def search_contacts():
             user_id=current_user_id
         )
         
-        # Log the operation
-        _create_log(
-            user_id=current_user_id,
-            session_id=data['session_id'],
-            message_id=data['chat_message_id'],
-            log_type='contact_action',
-            hubspot_id='search',
-            sync_status='synced'
-        )
+        # Log the operation (only if session_id and chat_message_id are provided)
+        if data.get('session_id', 0) > 0 and data.get('chat_message_id', 0) > 0:
+            _create_log(
+                user_id=current_user_id,
+                session_id=data['session_id'],
+                message_id=data['chat_message_id'],
+                log_type='contact_action',
+                hubspot_id='search',
+                sync_status='synced'
+            )
         
         return jsonify(result), 200
         
