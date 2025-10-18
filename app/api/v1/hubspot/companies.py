@@ -67,25 +67,23 @@ class CompanyUpdateSchema(Schema):
 
 class CompanySearchSchema(Schema):
     token = fields.Str(required=True)
-    session_id = fields.Int(required=True)
-    chat_message_id = fields.Int(required=True)
+    session_id = fields.Int(missing=0)  # Optional for getters
+    chat_message_id = fields.Int(missing=0)  # Optional for getters
     search_term = fields.Str(required=True)
+    limit = fields.Int(missing=10)
 
 class CompanyGetSchema(Schema):
     token = fields.Str(required=True)
+    session_id = fields.Int(missing=0)  # Optional for getters
+    chat_message_id = fields.Int(missing=0)  # Optional for getters
     limit = fields.Int(missing=10)
     properties = fields.List(fields.Str(), missing=[])
 
 class CompanyGetByIdSchema(Schema):
     token = fields.Str(required=True)
     company_id = fields.Str(required=True)
-
-class CompanySearchSchema(Schema):
-    token = fields.Str(required=True)
-    session_id = fields.Int(required=True)
-    chat_message_id = fields.Int(required=True)
-    search_term = fields.Str(required=True)
-    limit = fields.Int(missing=10)
+    session_id = fields.Int(missing=0)  # Optional for getters
+    chat_message_id = fields.Int(missing=0)  # Optional for getters
 
 class CompanyDeleteSchema(Schema):
     token = fields.Str(required=True)
@@ -142,15 +140,16 @@ def get_companies():
         # Get companies from HubSpot
         result = HubSpotService.get_companies(limit=limit, user_id=current_user_id, properties=properties)
         
-        # Log the operation
-        _create_log(
-            user_id=current_user_id,
-            session_id=0,
-            message_id=0,
-            log_type='company_action',
-            hubspot_id='multiple',
-            sync_status='synced'
-        )
+        # Log the operation (only if session_id and chat_message_id are provided)
+        if data.get('session_id', 0) > 0 and data.get('chat_message_id', 0) > 0:
+            _create_log(
+                user_id=current_user_id,
+                session_id=data['session_id'],
+                message_id=data['chat_message_id'],
+                log_type='company_action',
+                hubspot_id='multiple',
+                sync_status='synced'
+            )
         
         return jsonify(result), 200
         
@@ -175,15 +174,16 @@ def get_company():
         # Get company from HubSpot
         result = HubSpotService.get_company_by_id(company_id, user_id=current_user_id)
         
-        # Log the operation
-        _create_log(
-            user_id=current_user_id,
-            session_id=0,
-            message_id=0,
-            log_type='company_action',
-            hubspot_id=company_id,
-            sync_status='synced'
-        )
+        # Log the operation (only if session_id and chat_message_id are provided)
+        if data.get('session_id', 0) > 0 and data.get('chat_message_id', 0) > 0:
+            _create_log(
+                user_id=current_user_id,
+                session_id=data['session_id'],
+                message_id=data['chat_message_id'],
+                log_type='company_action',
+                hubspot_id=company_id,
+                sync_status='synced'
+            )
         
         return jsonify(result), 200
         
@@ -242,15 +242,16 @@ def search_companies():
             user_id=current_user_id
         )
         
-        # Log the operation
-        _create_log(
-            user_id=current_user_id,
-            session_id=data['session_id'],
-            message_id=data['chat_message_id'],
-            log_type='company_action',
-            hubspot_id='search',
-            sync_status='synced'
-        )
+        # Log the operation (only if session_id and chat_message_id are provided)
+        if data.get('session_id', 0) > 0 and data.get('chat_message_id', 0) > 0:
+            _create_log(
+                user_id=current_user_id,
+                session_id=data['session_id'],
+                message_id=data['chat_message_id'],
+                log_type='company_action',
+                hubspot_id='search',
+                sync_status='synced'
+            )
         
         return jsonify(result), 200
         
