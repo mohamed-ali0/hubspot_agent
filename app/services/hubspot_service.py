@@ -612,6 +612,43 @@ class HubSpotService:
             )
             return {'success': False, 'error': error_msg}
 
+    @staticmethod
+    def delete_company(company_id, session_id=None, message_id=None, user_id=None):
+        """Delete company from HubSpot"""
+        response = HubSpotService.make_request('DELETE', f'/crm/v3/objects/companies/{company_id}', user_id=user_id)
+
+        if response.status_code in [200, 204]:
+            HubSpotService._create_success_log(
+                user_id, session_id, message_id, 'company_action', company_id,
+                f"Company deleted: {company_id}"
+            )
+            return {'success': True, 'hubspot_id': company_id, 'message': 'Company deleted successfully'}
+        else:
+            error_msg = response.text
+            HubSpotService._create_failed_log(
+                user_id, session_id, message_id, 'company_action', error_msg
+            )
+            return {'success': False, 'error': error_msg}
+
+    @staticmethod
+    def update_company(company_id, company_data, session_id=None, message_id=None, user_id=None):
+        """Update company in HubSpot"""
+        response = HubSpotService.make_request('PATCH', f'/crm/v3/objects/companies/{company_id}', {'properties': company_data}, user_id=user_id)
+
+        if response.status_code in [200, 201]:
+            hubspot_id = response.json().get('id')
+            HubSpotService._create_success_log(
+                user_id, session_id, message_id, 'company_action', hubspot_id,
+                f"Company updated: {company_data.get('name', 'N/A')}"
+            )
+            return {'success': True, 'hubspot_id': hubspot_id, 'data': response.json()}
+        else:
+            error_msg = response.text
+            HubSpotService._create_failed_log(
+                user_id, session_id, message_id, 'company_action', error_msg
+            )
+            return {'success': False, 'error': error_msg}
+
     # ========== OWNER OPERATIONS ==========
 
     @staticmethod
