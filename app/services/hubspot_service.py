@@ -119,6 +119,99 @@ class HubSpotService:
         response = HubSpotService.make_request('GET', '/crm/v3/properties/contacts')
         return response
 
+    @staticmethod
+    def get_contact_property(property_name, user_id=None):
+        """Get specific contact property schema"""
+        response = HubSpotService.make_request('GET', f'/crm/v3/properties/contacts/{property_name}', user_id=user_id)
+        
+        if response.status_code == 200:
+            return response.json()
+        else:
+            raise Exception(f"HubSpot API error: {response.status_code} - {response.text}")
+
+    @staticmethod
+    def search_contacts(search_term, limit=10, user_id=None):
+        """Search contacts in HubSpot"""
+        # Use the search API endpoint
+        search_data = {
+            "query": search_term,
+            "limit": limit,
+            "filterGroups": [
+                {
+                    "filters": [
+                        {
+                            "propertyName": "email",
+                            "operator": "CONTAINS_TOKEN",
+                            "value": search_term
+                        }
+                    ]
+                }
+            ]
+        }
+        
+        response = HubSpotService.make_request('POST', '/crm/v3/objects/contacts/search', search_data, user_id=user_id)
+        
+        if response.status_code == 200:
+            return response.json()
+        else:
+            raise Exception(f"HubSpot API error: {response.status_code} - {response.text}")
+
+    @staticmethod
+    def delete_contact(contact_id, session_id=None, message_id=None, user_id=None):
+        """Delete contact from HubSpot"""
+        response = HubSpotService.make_request('DELETE', f'/crm/v3/objects/contacts/{contact_id}', user_id=user_id)
+
+        if response.status_code in [200, 204]:
+            HubSpotService._create_success_log(
+                user_id, session_id, message_id, 'contact_action', contact_id,
+                f"Contact deleted: {contact_id}"
+            )
+            return {'success': True, 'hubspot_id': contact_id, 'message': 'Contact deleted successfully'}
+        else:
+            error_msg = response.text
+            HubSpotService._create_failed_log(
+                user_id, session_id, message_id, 'contact_action', error_msg
+            )
+            return {'success': False, 'error': error_msg}
+
+    @staticmethod
+    def replace_contact(contact_id, contact_data, session_id=None, message_id=None, user_id=None):
+        """Replace contact in HubSpot (full update)"""
+        response = HubSpotService.make_request('PUT', f'/crm/v3/objects/contacts/{contact_id}', {'properties': contact_data}, user_id=user_id)
+
+        if response.status_code in [200, 201]:
+            hubspot_id = response.json().get('id')
+            HubSpotService._create_success_log(
+                user_id, session_id, message_id, 'contact_action', hubspot_id,
+                f"Contact replaced: {contact_data.get('firstname', 'N/A')} {contact_data.get('lastname', 'N/A')}"
+            )
+            return {'success': True, 'hubspot_id': hubspot_id, 'data': response.json()}
+        else:
+            error_msg = response.text
+            HubSpotService._create_failed_log(
+                user_id, session_id, message_id, 'contact_action', error_msg
+            )
+            return {'success': False, 'error': error_msg}
+
+    @staticmethod
+    def batch_create_contacts(contacts_data, session_id=None, message_id=None, user_id=None):
+        """Batch create contacts in HubSpot"""
+        response = HubSpotService.make_request('POST', '/crm/v3/objects/contacts/batch/create', {'inputs': contacts_data}, user_id=user_id)
+
+        if response.status_code in [200, 201]:
+            result = response.json()
+            HubSpotService._create_success_log(
+                user_id, session_id, message_id, 'contact_action', 'batch_create',
+                f"Batch created {len(contacts_data)} contacts"
+            )
+            return {'success': True, 'data': result}
+        else:
+            error_msg = response.text
+            HubSpotService._create_failed_log(
+                user_id, session_id, message_id, 'contact_action', error_msg
+            )
+            return {'success': False, 'error': error_msg}
+
     # ========== DEAL OPERATIONS ==========
 
     @staticmethod

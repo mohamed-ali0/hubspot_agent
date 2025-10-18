@@ -38,12 +38,10 @@ def test_real_no_escapes():
         "properties": properties_string
     }
     
-    print("Request Body:")
-    print("Token:", request_data["token"][:50] + "...")
-    print("Session ID:", request_data["session_id"])
-    print("Chat Message ID:", request_data["chat_message_id"])
-    print("Properties (NO escaped quotes):")
-    print(request_data["properties"])
+    # Print the raw request body without any decoration
+    raw_json = json.dumps(request_data)
+    print("Raw request body:")
+    print(raw_json)
     
     try:
         response = requests.post(f"{base_url}/api/hubspot/companies/companies", json=request_data)
