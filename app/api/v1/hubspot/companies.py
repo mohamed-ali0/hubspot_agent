@@ -8,6 +8,7 @@ from app.services.hubspot_service import HubSpotService
 from app.models import User, Log, ChatSession, ChatMessage
 from app.db.database import db
 from marshmallow import Schema, fields, ValidationError
+import json
 from datetime import datetime
 import jwt
 from flask import current_app
@@ -55,14 +56,14 @@ class CompanyCreateSchema(Schema):
     token = fields.Str(required=True)
     session_id = fields.Int(required=True)
     chat_message_id = fields.Int(required=True)
-    properties = fields.Dict(required=True)
+    properties = fields.Raw(required=True)  # Accept both Dict and string
 
 class CompanyUpdateSchema(Schema):
     token = fields.Str(required=True)
     company_id = fields.Str(required=True)
     session_id = fields.Int(required=True)
     chat_message_id = fields.Int(required=True)
-    properties = fields.Dict(required=True)
+    properties = fields.Raw(required=True)  # Accept both Dict and string
 
 class CompanySearchSchema(Schema):
     token = fields.Str(required=True)
@@ -271,9 +272,17 @@ def create_company():
         
         data = company_create_schema.load(request.get_json())
         
+        # Parse properties if it's a string
+        properties = data['properties']
+        if isinstance(properties, str):
+            try:
+                properties = json.loads(properties)
+            except json.JSONDecodeError:
+                return jsonify({'error': 'Invalid JSON in properties field'}), 400
+        
         # Create company in HubSpot
         result = HubSpotService.create_company(
-            company_data=data['properties'],
+            company_data=properties,
             session_id=data['session_id'],
             message_id=data['chat_message_id'],
             user_id=current_user_id
@@ -307,10 +316,18 @@ def update_company():
         data = company_update_schema.load(request.get_json())
         company_id = data['company_id']
         
+        # Parse properties if it's a string
+        properties = data['properties']
+        if isinstance(properties, str):
+            try:
+                properties = json.loads(properties)
+            except json.JSONDecodeError:
+                return jsonify({'error': 'Invalid JSON in properties field'}), 400
+        
         # Update company in HubSpot
         result = HubSpotService.update_company(
             company_id=company_id,
-            company_data=data['properties'],
+            company_data=properties,
             session_id=data['session_id'],
             message_id=data['chat_message_id'],
             user_id=current_user_id
