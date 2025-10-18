@@ -16,7 +16,7 @@ def get_test_token():
     password = "test"
     
     print("Getting JWT token for test user...")
-    print(f"Username: {username}")
+    print(f"Username : {username}")
     print(f"Server: {base_url}")
     print("-" * 40)
     
